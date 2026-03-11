@@ -88,3 +88,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 $conn->close();
 http_response_code(400);
 jsonResponse(['error' => 'Ação não reconhecida']);
+?>
