@@ -94,7 +94,7 @@
             </div>
         </div>
     </main>
-    <script src="../js/app.js"></script>
+    <script src="../js/app.js?v=2"></script>
     <script>
         (function() {
             var container = document.getElementById('lista-medicamentos-check');
@@ -148,14 +148,16 @@
                             '</div>';
                     }).join('');
                 }).catch(function(err) {
+                    console.error('[Interações] Erro ao analisar:', err);
                     btnAnalisar.disabled = false;
                     resultadoEl.className = 'interacoes-result';
-                    resultadoEl.innerHTML = '<span style="color: var(--risk-severe);">Erro ao analisar: ' + (err.message || 'Verifique o backend.') + '</span>';
+                    resultadoEl.innerHTML = '<span style="color: var(--risk-severe);">Erro ao analisar. Verifique o console.</span>';
                 });
             });
 
-            api.listarMedicamentos().then(renderCheckboxes).catch(function() {
-                container.innerHTML = '<span style="color: var(--text-muted);">Erro ao carregar medicamentos.</span>';
+            api.listarMedicamentos().then(renderCheckboxes).catch(function(err) {
+                console.error('[Interações] Erro ao carregar medicamentos (checkboxes):', err);
+                container.innerHTML = '<span style="color: var(--text-muted);">Erro ao carregar medicamentos. Verifique o console.</span>';
             });
 
             // Cadastro de interação: popular selects e enviar formulário
@@ -184,8 +186,9 @@
                         var r = (i.nivel_risco || 'medio').toLowerCase();
                         return '<tr><td>' + escapeHtml(i.nomeA || '') + '</td><td>' + escapeHtml(i.nomeB || '') + '</td><td>' + escapeHtml(i.tipo_interacao || '-') + '</td><td><span class="risk-badge ' + (riscoClass[r] || 'risk-moderate') + '">' + (riscoLabel[r] || r) + '</span></td><td>' + escapeHtml((i.recomendacao || '').slice(0, 60)) + ((i.recomendacao || '').length > 60 ? '...' : '') + '</td></tr>';
                     }).join('');
-                }).catch(function() {
-                    tbodyInteracoes.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--risk-severe);">Erro ao carregar.</td></tr>';
+                }).catch(function(err) {
+                    console.error('[Interações] Erro ao carregar tabela de interações:', err);
+                    tbodyInteracoes.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o console.</td></tr>';
                 });
             }
 
@@ -208,11 +211,12 @@
                 }).then(function() {
                     formInteracao.reset();
                     selectMedA.innerHTML = selectMedB.innerHTML = '<option value="">Selecione</option>';
-                    api.listarMedicamentos().then(popularSelectsMedicamentos);
+                    api.listarMedicamentos().then(popularSelectsMedicamentos).catch(function(e) { console.error('[Interações] Erro ao recarregar selects:', e); });
                     loadTabelaInteracoes();
                     btn.disabled = false;
                     alert('Interação cadastrada com sucesso!');
                 }).catch(function(err) {
+                    console.error('[Interações] Erro ao cadastrar interação:', err);
                     btn.disabled = false;
                     alert('Erro: ' + (err.message || 'Não foi possível cadastrar.'));
                 });
@@ -220,6 +224,9 @@
 
             api.listarMedicamentos().then(function(meds) {
                 popularSelectsMedicamentos(meds);
+            }).catch(function(err) {
+                console.error('[Interações] Erro ao carregar medicamentos (selects):', err);
+                selectMedA.innerHTML = selectMedB.innerHTML = '<option value="">Erro ao carregar</option>';
             });
             loadTabelaInteracoes();
         })();

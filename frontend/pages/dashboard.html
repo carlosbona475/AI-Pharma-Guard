@@ -51,14 +51,15 @@
             </div>
         </div>
     </main>
-    <script src="../js/app.js"></script>
+    <script src="../js/app.js?v=2"></script>
     <script>
         (function() {
             api.getEstatisticas().then(function(data) {
                 document.getElementById('stat-pacientes').textContent = data.pacientes;
                 document.getElementById('stat-medicamentos').textContent = data.medicamentos;
                 document.getElementById('stat-interacoes').textContent = data.interacoes_cadastradas;
-            }).catch(function() {
+            }).catch(function(err) {
+                console.error('[Dashboard] Erro ao carregar estatísticas:', err);
                 document.getElementById('stat-pacientes').textContent = '0';
                 document.getElementById('stat-medicamentos').textContent = '0';
                 document.getElementById('stat-interacoes').textContent = '0';

@@ -1,13 +1,30 @@
 <?php
-// CORS Headers
+header('Content-Type: application/json');
+// Garantir que apenas JSON seja enviado (evitar HTML de erros ou BOM)
+ini_set('display_errors', '0');
+error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
+ob_start();
+
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Content-Type: application/json; charset=UTF-8');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    ob_end_clean();
     http_response_code(200);
     exit;
+}
+
+function sendJson($data) {
+    ob_end_clean();
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+function sendError($message, $code = 500) {
+    http_response_code($code);
+    sendJson(['error' => $message]);
 }
 
 $servername = "localhost";
@@ -15,103 +32,95 @@ $username = "root";
 $password = "";
 $dbname = "farmacia";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+$conn = @new mysqli($servername, $username, $password, $dbname);
 
 if ($conn->connect_error) {
-    http_response_code(500);
-    echo json_encode(['error' => 'Conexão falhou: ' . $conn->connect_error]);
-    exit;
+    sendError('Conexão falhou: ' . $conn->connect_error, 500);
 }
 
 $conn->set_charset("utf8");
 
 // ---- ESTATÍSTICAS (Dashboard) ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'estatisticas') {
-    $pacientes = $conn->query("SELECT COUNT(*) as total FROM pacientes")->fetch_assoc()['total'];
-    $medicamentos = $conn->query("SELECT COUNT(*) as total FROM medicamentos")->fetch_assoc()['total'];
-    $interacoes = $conn->query("SELECT COUNT(*) as total FROM interacoes")->fetch_assoc()['total'];
-    echo json_encode([
-        'pacientes' => (int) $pacientes,
-        'medicamentos' => (int) $medicamentos,
-        'interacoes_cadastradas' => (int) $interacoes
+    $q1 = $conn->query("SELECT COUNT(*) as total FROM pacientes");
+    $q2 = $conn->query("SELECT COUNT(*) as total FROM medicamentos");
+    $q3 = $conn->query("SELECT COUNT(*) as total FROM interacoes");
+    if (!$q1 || !$q2 || !$q3) {
+        sendError('Erro ao consultar estatísticas. Verifique se o banco e as tabelas existem.', 500);
+    }
+    $pacientes = (int) $q1->fetch_assoc()['total'];
+    $medicamentos = (int) $q2->fetch_assoc()['total'];
+    $interacoes = (int) $q3->fetch_assoc()['total'];
+    sendJson([
+        'pacientes' => $pacientes,
+        'medicamentos' => $medicamentos,
+        'interacoes_cadastradas' => $interacoes
     ]);
-    $conn->close();
-    exit;
 }
 
 // ---- LISTAR PACIENTES ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_pacientes') {
     $result = $conn->query("SELECT * FROM pacientes ORDER BY nome");
-    $pacientes = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
-    echo json_encode($pacientes);
-    $conn->close();
-    exit;
+    $pacientes = ($result && $result->num_rows >= 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
+    sendJson($pacientes);
 }
 
 // ---- CADASTRAR PACIENTE ----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'cadastrar_paciente') {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $raw = file_get_contents('php://input');
+    $data = $raw ? json_decode($raw, true) : null;
     if (!$data || empty($data['nome'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Dados inválidos']);
-        $conn->close();
-        exit;
+        sendError('Dados inválidos', 400);
     }
     $stmt = $conn->prepare("INSERT INTO pacientes (nome, idade, sexo, doencas, medicamentos_usados) VALUES (?, ?, ?, ?, ?)");
+    if (!$stmt) {
+        sendError('Erro ao preparar comando', 500);
+    }
     $stmt->bind_param("sisss",
         $data['nome'],
-        $data['idade'] ?? 0,
-        $data['sexo'] ?? 'masculino',
-        $data['doencas'] ?? '',
-        $data['medicamentos'] ?? ''
+        isset($data['idade']) ? (int)$data['idade'] : 0,
+        isset($data['sexo']) ? $data['sexo'] : 'masculino',
+        isset($data['doencas']) ? $data['doencas'] : '',
+        isset($data['medicamentos']) ? $data['medicamentos'] : ''
     );
     if ($stmt->execute()) {
-        echo json_encode(['message' => 'Paciente cadastrado com sucesso!', 'id' => $conn->insert_id]);
-    } else {
-        http_response_code(500);
-        echo json_encode(['error' => $stmt->error]);
+        sendJson(['message' => 'Paciente cadastrado com sucesso!', 'id' => (int)$conn->insert_id]);
     }
-    $conn->close();
-    exit;
+    sendError($stmt->error ?: 'Erro ao cadastrar', 500);
 }
 
 // ---- LISTAR MEDICAMENTOS ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_medicamentos') {
     $result = $conn->query("SELECT * FROM medicamentos ORDER BY nome");
-    $medicamentos = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
-    echo json_encode($medicamentos);
-    $conn->close();
-    exit;
+    $medicamentos = ($result && $result->num_rows >= 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
+    sendJson($medicamentos);
 }
 
 // ---- CADASTRAR MEDICAMENTO ----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'cadastrar_medicamento') {
-    $data = json_decode(file_get_contents('php://input'), true);
+    $raw = file_get_contents('php://input');
+    $data = $raw ? json_decode($raw, true) : null;
     if (!$data || empty($data['nome'])) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Dados inválidos']);
-        $conn->close();
-        exit;
+        sendError('Dados inválidos', 400);
     }
     $stmt = $conn->prepare("INSERT INTO medicamentos (nome, classe_farmacologica, dose, indicacao, contraindicacoes) VALUES (?, ?, ?, ?, ?)");
+    if (!$stmt) {
+        sendError('Erro ao preparar comando', 500);
+    }
     $stmt->bind_param("sssss",
         $data['nome'],
-        $data['classe'] ?? '',
-        $data['dose'] ?? '',
-        $data['indicacao'] ?? '',
-        $data['contraindicacoes'] ?? ''
+        isset($data['classe']) ? $data['classe'] : '',
+        isset($data['dose']) ? $data['dose'] : '',
+        isset($data['indicacao']) ? $data['indicacao'] : '',
+        isset($data['contraindicacoes']) ? $data['contraindicacoes'] : ''
     );
     if ($stmt->execute()) {
-        echo json_encode(['message' => 'Medicamento cadastrado com sucesso!', 'id' => $conn->insert_id]);
-    } else {
-        http_response_code(500);
-        echo json_encode(['error' => $stmt->error]);
+        sendJson(['message' => 'Medicamento cadastrado com sucesso!', 'id' => (int)$conn->insert_id]);
     }
-    $conn->close();
-    exit;
+    sendError($stmt->error ?: 'Erro ao cadastrar', 500);
 }
 
-// ---- LISTAR INTERAÇÕES (todas cadastradas) ----
+// ---- LISTAR INTERAÇÕES ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_interacoes') {
     $result = $conn->query("
         SELECT i.*, ma.nome AS nomeA, mb.nome AS nomeB
@@ -120,46 +129,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         JOIN medicamentos mb ON mb.id = i.medicamentoB
         ORDER BY i.nivel_risco DESC, ma.nome
     ");
-    $lista = $result ? $result->fetch_all(MYSQLI_ASSOC) : [];
-    echo json_encode($lista);
-    $conn->close();
-    exit;
+    $lista = ($result && $result->num_rows >= 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
+    sendJson($lista);
 }
 
 // ---- CADASTRAR INTERAÇÃO ----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'cadastrar_interacao') {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $medA = (int) ($data['medicamentoA'] ?? 0);
-    $medB = (int) ($data['medicamentoB'] ?? 0);
+    $raw = file_get_contents('php://input');
+    $data = $raw ? json_decode($raw, true) : null;
+    $medA = $data ? (int)(isset($data['medicamentoA']) ? $data['medicamentoA'] : 0) : 0;
+    $medB = $data ? (int)(isset($data['medicamentoB']) ? $data['medicamentoB'] : 0) : 0;
     if ($medA <= 0 || $medB <= 0 || $medA === $medB) {
-        http_response_code(400);
-        echo json_encode(['error' => 'Selecione dois medicamentos diferentes.']);
-        $conn->close();
-        exit;
+        sendError('Selecione dois medicamentos diferentes.', 400);
     }
-    $nivel = in_array($data['nivel_risco'] ?? '', ['baixo', 'medio', 'alto']) ? $data['nivel_risco'] : 'medio';
+    $nivel = isset($data['nivel_risco']) && in_array($data['nivel_risco'], ['baixo', 'medio', 'alto']) ? $data['nivel_risco'] : 'medio';
+    $tipo = isset($data['tipo_interacao']) ? $data['tipo_interacao'] : '';
+    $recomendacao = isset($data['recomendacao']) ? $data['recomendacao'] : '';
     $stmt = $conn->prepare("INSERT INTO interacoes (medicamentoA, medicamentoB, tipo_interacao, nivel_risco, recomendacao) VALUES (?, ?, ?, ?, ?)");
-    $tipo = $data['tipo_interacao'] ?? '';
-    $recomendacao = $data['recomendacao'] ?? '';
+    if (!$stmt) {
+        sendError('Erro ao preparar comando', 500);
+    }
     $stmt->bind_param("iisss", $medA, $medB, $tipo, $nivel, $recomendacao);
     if ($stmt->execute()) {
-        echo json_encode(['message' => 'Interação cadastrada com sucesso!', 'id' => $conn->insert_id]);
-    } else {
-        http_response_code(500);
-        echo json_encode(['error' => $stmt->error]);
+        sendJson(['message' => 'Interação cadastrada com sucesso!', 'id' => (int)$conn->insert_id]);
     }
-    $conn->close();
-    exit;
+    sendError($stmt->error ?: 'Erro ao cadastrar', 500);
 }
 
 // ---- VERIFICAR INTERAÇÕES ----
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'verificar_interacoes') {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $medicamentos = $data['medicamentos'] ?? [];
-    $ids = array_map(function ($m) {
-        return is_array($m) ? (int) ($m['id'] ?? 0) : (int) $m;
-    }, $medicamentos);
-    $ids = array_unique(array_filter($ids));
+    $raw = file_get_contents('php://input');
+    $data = $raw ? json_decode($raw, true) : null;
+    $medicamentos = ($data && isset($data['medicamentos'])) ? $data['medicamentos'] : [];
+    $ids = array_values(array_unique(array_filter(array_map(function ($m) {
+        return is_array($m) ? (int)(isset($m['id']) ? $m['id'] : 0) : (int)$m;
+    }, $medicamentos))));
 
     $interacoes = [];
     $stmt = $conn->prepare("
@@ -169,26 +173,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         JOIN medicamentos mb ON mb.id = i.medicamentoB
         WHERE (i.medicamentoA = ? AND i.medicamentoB = ?) OR (i.medicamentoA = ? AND i.medicamentoB = ?)
     ");
-
-    for ($i = 0; $i < count($ids); $i++) {
-        for ($j = $i + 1; $j < count($ids); $j++) {
-            $a = $ids[$i];
-            $b = $ids[$j];
-            $stmt->bind_param("iiii", $a, $b, $b, $a);
-            $stmt->execute();
-            $res = $stmt->get_result();
-            while ($row = $res->fetch_assoc()) {
-                $interacoes[] = $row;
+    if ($stmt) {
+        for ($i = 0; $i < count($ids); $i++) {
+            for ($j = $i + 1; $j < count($ids); $j++) {
+                $a = $ids[$i];
+                $b = $ids[$j];
+                $stmt->bind_param("iiii", $a, $b, $b, $a);
+                $stmt->execute();
+                $res = $stmt->get_result();
+                if ($res) {
+                    while ($row = $res->fetch_assoc()) {
+                        $interacoes[] = $row;
+                    }
+                }
             }
         }
     }
-
-    echo json_encode($interacoes);
-    $conn->close();
-    exit;
+    sendJson($interacoes);
 }
 
 $conn->close();
-http_response_code(400);
-echo json_encode(['error' => 'Ação não reconhecida']);
-?>
+sendError('Ação não reconhecida', 400);

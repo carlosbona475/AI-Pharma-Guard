@@ -78,7 +78,7 @@
             </div>
         </div>
     </main>
-    <script src="../js/app.js"></script>
+    <script src="../js/app.js?v=2"></script>
     <script>
         (function() {
             var form = document.getElementById('form-paciente');
@@ -93,8 +93,9 @@
                     tbody.innerHTML = pacientes.map(function(p) {
                         return '<tr><td>' + p.id + '</td><td>' + escapeHtml(p.nome) + '</td><td>' + p.idade + '</td><td>' + (p.sexo || '-') + '</td><td>' + escapeHtml(p.doencas || '-') + '</td><td>' + escapeHtml(p.medicamentos_usados || '-') + '</td></tr>';
                     }).join('');
-                }).catch(function() {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o backend.</td></tr>';
+                }).catch(function(err) {
+                    console.error('[Pacientes] Erro ao listar:', err);
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o console.</td></tr>';
                 });
             }
 
@@ -114,6 +115,7 @@
                     btn.disabled = false;
                     alert('Paciente cadastrado com sucesso!');
                 }).catch(function(err) {
+                    console.error('[Pacientes] Erro ao cadastrar:', err);
                     btn.disabled = false;
                     alert('Erro: ' + (err.message || 'Não foi possível cadastrar.'));
                 });
