@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pharma Guard - Análise de Interações</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>AI Pharma Guard</h1>
+    </header>
+    <div id="container">
+        <nav id="menu-lateral">
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pharma Guard - Análise de Interações</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>AI Pharma Guard</h1>
+    </header>
+    <main>
+        <h2>Análise de Interações Medicamentosas</h2>
+        <form>
+            <label for="medicamentos">IDs dos Medicamentos:</label>
+            <input type="text" id="medicamentos" name="medicamentos" placeholder="1, 2, 3" required>
+            <button type="submit">Verificar Interações</button>
+        </form>
+        <div id="resultado-interacoes">
+            <h3>Resultado da Análise</h3>
+            <pre id="resultado-analisados"></pre>
+        </div>
+    </main>
+    <script src="app.js"></script>
+</body>
+</html>

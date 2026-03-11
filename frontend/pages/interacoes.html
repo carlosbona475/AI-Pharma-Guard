@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interações - AI Pharma Guard</title>
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+    <header class="app-topbar">
+        <h1>AI Pharma Guard</h1>
+    </header>
+    <aside class="app-sidebar">
+        <nav>
+            <div class="nav-title">Navegação</div>
+            <ul>
+                <li><a href="dashboard.html"><span class="nav-icon">&#128202;</span><span>Dashboard</span></a></li>
+                <li><a href="pacientes.html"><span class="nav-icon">&#128100;</span><span>Pacientes</span></a></li>
+                <li><a href="medicamentos.html"><span class="nav-icon">&#128138;</span><span>Medicamentos</span></a></li>
+                <li><a href="interacoes.html" class="active"><span class="nav-icon">&#9888;</span><span>Interações</span></a></li>
+                <li><a href="relatorios.html"><span class="nav-icon">&#128203;</span><span>Relatórios</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main class="app-main">
+        <h1 class="page-title">Análise de Interações</h1>
+        <p style="color: var(--text-muted); margin-bottom: 24px;">Selecione os medicamentos e analise possíveis interações. Cores: <span class="risk-badge risk-none">Sem interação</span> <span class="risk-badge risk-moderate">Moderada</span> <span class="risk-badge risk-severe">Grave</span></p>
+
+        <div class="card">
+            <h3>Medicamentos para análise</h3>
+            <p style="margin-bottom: 16px; color: var(--text-muted);">Selecione dois ou mais medicamentos da lista para verificar interações cadastradas no sistema.</p>
+            <div id="lista-medicamentos-check" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;"></div>
+            <button type="button" id="btn-analisar" class="btn btn-primary">Analisar interações</button>
+        </div>
+
+        <div class="card">
+            <h3>Resultado das interações</h3>
+            <div id="resultado-interacoes" class="interacoes-result empty">
+                Selecione os medicamentos acima e clique em "Analisar interações".
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>Cadastrar nova interação</h3>
+            <p style="margin-bottom: 16px; color: var(--text-muted);">Registre uma interação conhecida entre dois medicamentos.</p>
+            <form id="form-interacao" class="form-grid" style="max-width: 640px;">
+                <div class="form-group">
+                    <label for="interacao-med-a">Medicamento A *</label>
+                    <select id="interacao-med-a" name="medicamentoA" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="interacao-med-b">Medicamento B *</label>
+                    <select id="interacao-med-b" name="medicamentoB" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="interacao-tipo">Tipo de interação</label>
+                    <input type="text" id="interacao-tipo" name="tipo_interacao" placeholder="Ex: Aumento de efeito">
+                </div>
+                <div class="form-group">
+                    <label for="interacao-risco">Nível de risco</label>
+                    <select id="interacao-risco" name="nivel_risco">
+                        <option value="baixo">Baixo (verde)</option>
+                        <option value="medio" selected>Moderado (amarelo)</option>
+                        <option value="alto">Alto (vermelho)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="interacao-recomendacao">Recomendação</label>
+                    <textarea id="interacao-recomendacao" name="recomendacao" rows="3" placeholder="Orientações ao prescritor"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Cadastrar interação</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Interações cadastradas no sistema</h3>
+            <div class="table-wrap">
+                <table class="data-table" id="tabela-interacoes">
+                    <thead>
+                        <tr>
+                            <th>Medicamento A</th>
+                            <th>Medicamento B</th>
+                            <th>Tipo</th>
+                            <th>Risco</th>
+                            <th>Recomendação</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script src="../js/app.js"></script>
+    <script>
+        (function() {
+            var container = document.getElementById('lista-medicamentos-check');
+            var btnAnalisar = document.getElementById('btn-analisar');
+            var resultadoEl = document.getElementById('resultado-interacoes');
+
+            function renderCheckboxes(medicamentos) {
+                if (!medicamentos || medicamentos.length === 0) {
+                    container.innerHTML = '<span style="color: var(--text-muted);">Nenhum medicamento cadastrado. Cadastre em Medicamentos.</span>';
+                    return;
+                }
+                container.innerHTML = medicamentos.map(function(m) {
+                    return '<label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; background: #f1f5f9; border-radius: 8px;"><input type="checkbox" name="med" value="' + m.id + '" data-nome="' + escapeHtml(m.nome) + '"> ' + escapeHtml(m.nome) + '</label>';
+                }).join('');
+            }
+
+            function getSelectedMedicamentos() {
+                var nodes = container.querySelectorAll('input[name="med"]:checked');
+                return Array.from(nodes).map(function(n) {
+                    return { id: parseInt(n.value, 10), nome: n.getAttribute('data-nome') };
+                });
+            }
+
+            btnAnalisar.addEventListener('click', function() {
+                var selected = getSelectedMedicamentos();
+                if (selected.length < 2) {
+                    resultadoEl.className = 'interacoes-result empty';
+                    resultadoEl.innerHTML = 'Selecione pelo menos 2 medicamentos para analisar.';
+                    return;
+                }
+                resultadoEl.className = 'interacoes-result';
+                resultadoEl.innerHTML = '<span style="color: var(--text-muted);">Analisando...</span>';
+                btnAnalisar.disabled = true;
+
+                api.verificarInteracoes(selected).then(function(interacoes) {
+                    btnAnalisar.disabled = false;
+                    if (interacoes.length === 0) {
+                        resultadoEl.className = 'interacoes-result empty';
+                        resultadoEl.innerHTML = 'Nenhuma interação cadastrada encontrada entre os medicamentos selecionados.';
+                        return;
+                    }
+                    resultadoEl.className = 'interacoes-result';
+                    resultadoEl.innerHTML = interacoes.map(function(i) {
+                        var risco = (i.nivel_risco || 'baixo').toLowerCase();
+                        var riscoClass = risco === 'alto' ? 'risco-alto' : (risco === 'medio' ? 'risco-medio' : 'risco-baixo');
+                        return '<div class="interacao-item ' + riscoClass + '">' +
+                            '<div class="med-names">' + escapeHtml(i.nomeA || '') + ' + ' + escapeHtml(i.nomeB || '') + '</div>' +
+                            (i.tipo_interacao ? '<div class="tipo">' + escapeHtml(i.tipo_interacao) + '</div>' : '') +
+                            (i.recomendacao ? '<div class="recomendacao">' + escapeHtml(i.recomendacao) + '</div>' : '') +
+                            '<span class="risk-badge risk-' + (risco === 'alto' ? 'severe' : (risco === 'medio' ? 'moderate' : 'none')) + '">' + (risco === 'alto' ? 'Grave' : (risco === 'medio' ? 'Moderada' : 'Baixo')) + '</span>' +
+                            '</div>';
+                    }).join('');
+                }).catch(function(err) {
+                    btnAnalisar.disabled = false;
+                    resultadoEl.className = 'interacoes-result';
+                    resultadoEl.innerHTML = '<span style="color: var(--risk-severe);">Erro ao analisar: ' + (err.message || 'Verifique o backend.') + '</span>';
+                });
+            });
+
+            api.listarMedicamentos().then(renderCheckboxes).catch(function() {
+                container.innerHTML = '<span style="color: var(--text-muted);">Erro ao carregar medicamentos.</span>';
+            });
+
+            // Cadastro de interação: popular selects e enviar formulário
+            var formInteracao = document.getElementById('form-interacao');
+            var selectMedA = document.getElementById('interacao-med-a');
+            var selectMedB = document.getElementById('interacao-med-b');
+            var tbodyInteracoes = document.querySelector('#tabela-interacoes tbody');
+
+            function popularSelectsMedicamentos(medicamentos) {
+                var opts = '<option value="">Selecione</option>' + medicamentos.map(function(m) {
+                    return '<option value="' + m.id + '">' + escapeHtml(m.nome) + '</option>';
+                }).join('');
+                selectMedA.innerHTML = opts;
+                selectMedB.innerHTML = opts;
+            }
+
+            function loadTabelaInteracoes() {
+                api.listarInteracoes().then(function(lista) {
+                    if (lista.length === 0) {
+                        tbodyInteracoes.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Nenhuma interação cadastrada.</td></tr>';
+                        return;
+                    }
+                    var riscoLabel = { baixo: 'Baixo', medio: 'Moderado', alto: 'Alto' };
+                    var riscoClass = { baixo: 'risk-none', medio: 'risk-moderate', alto: 'risk-severe' };
+                    tbodyInteracoes.innerHTML = lista.map(function(i) {
+                        var r = (i.nivel_risco || 'medio').toLowerCase();
+                        return '<tr><td>' + escapeHtml(i.nomeA || '') + '</td><td>' + escapeHtml(i.nomeB || '') + '</td><td>' + escapeHtml(i.tipo_interacao || '-') + '</td><td><span class="risk-badge ' + (riscoClass[r] || 'risk-moderate') + '">' + (riscoLabel[r] || r) + '</span></td><td>' + escapeHtml((i.recomendacao || '').slice(0, 60)) + ((i.recomendacao || '').length > 60 ? '...' : '') + '</td></tr>';
+                    }).join('');
+                }).catch(function() {
+                    tbodyInteracoes.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--risk-severe);">Erro ao carregar.</td></tr>';
+                });
+            }
+
+            formInteracao.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var a = parseInt(selectMedA.value, 10);
+                var b = parseInt(selectMedB.value, 10);
+                if (a === b || !a || !b) {
+                    alert('Selecione dois medicamentos diferentes.');
+                    return;
+                }
+                var btn = formInteracao.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                api.cadastrarInteracao({
+                    medicamentoA: a,
+                    medicamentoB: b,
+                    tipo_interacao: document.getElementById('interacao-tipo').value || '',
+                    nivel_risco: document.getElementById('interacao-risco').value || 'medio',
+                    recomendacao: document.getElementById('interacao-recomendacao').value || ''
+                }).then(function() {
+                    formInteracao.reset();
+                    selectMedA.innerHTML = selectMedB.innerHTML = '<option value="">Selecione</option>';
+                    api.listarMedicamentos().then(popularSelectsMedicamentos);
+                    loadTabelaInteracoes();
+                    btn.disabled = false;
+                    alert('Interação cadastrada com sucesso!');
+                }).catch(function(err) {
+                    btn.disabled = false;
+                    alert('Erro: ' + (err.message || 'Não foi possível cadastrar.'));
+                });
+            });
+
+            api.listarMedicamentos().then(function(meds) {
+                popularSelectsMedicamentos(meds);
+            });
+            loadTabelaInteracoes();
+        })();
+    </script>
+</body>
+</html>

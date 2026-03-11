@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicamentos - AI Pharma Guard</title>
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+    <header class="app-topbar">
+        <h1>AI Pharma Guard</h1>
+    </header>
+    <aside class="app-sidebar">
+        <nav>
+            <div class="nav-title">Navegação</div>
+            <ul>
+                <li><a href="dashboard.html"><span class="nav-icon">&#128202;</span><span>Dashboard</span></a></li>
+                <li><a href="pacientes.html"><span class="nav-icon">&#128100;</span><span>Pacientes</span></a></li>
+                <li><a href="medicamentos.html" class="active"><span class="nav-icon">&#128138;</span><span>Medicamentos</span></a></li>
+                <li><a href="interacoes.html"><span class="nav-icon">&#9888;</span><span>Interações</span></a></li>
+                <li><a href="relatorios.html"><span class="nav-icon">&#128203;</span><span>Relatórios</span></a></li>
+            </ul>
+        </nav>
+    </aside>
+    <main class="app-main">
+        <h1 class="page-title">Medicamentos</h1>
+
+        <div class="card">
+            <h3>Cadastro de Medicamento</h3>
+            <form id="form-medicamento" class="form-grid" style="max-width: 640px;">
+                <div class="form-group">
+                    <label for="nome-medicamento">Nome do medicamento *</label>
+                    <input type="text" id="nome-medicamento" name="nome-medicamento" required placeholder="Nome do medicamento">
+                </div>
+                <div class="form-group">
+                    <label for="classe">Classe farmacológica</label>
+                    <input type="text" id="classe" name="classe" placeholder="Ex: Anti-hipertensivo">
+                </div>
+                <div class="form-group">
+                    <label for="dose">Dose</label>
+                    <input type="text" id="dose" name="dose" placeholder="Ex: 50mg">
+                </div>
+                <div class="form-group">
+                    <label for="indicacao">Indicação</label>
+                    <input type="text" id="indicacao" name="indicacao" placeholder="Indicação de uso">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="contraindicacoes">Contraindicações</label>
+                    <input type="text" id="contraindicacoes" name="contraindicacoes" placeholder="Contraindicacoes">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Cadastrar Medicamento</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>Medicamentos cadastrados</h3>
+            <div class="table-wrap">
+                <table class="data-table" id="tabela-medicamentos">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Classe</th>
+                            <th>Dose</th>
+                            <th>Indicação</th>
+                            <th>Contraindicações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Carregando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+    <script src="../js/app.js"></script>
+    <script>
+        (function() {
+            var form = document.getElementById('form-medicamento');
+            var tbody = document.querySelector('#tabela-medicamentos tbody');
+
+            function loadMedicamentos() {
+                api.listarMedicamentos().then(function(medicamentos) {
+                    if (medicamentos.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhum medicamento cadastrado.</td></tr>';
+                        return;
+                    }
+                    tbody.innerHTML = medicamentos.map(function(m) {
+                        var ind = (m.indicacao || '').slice(0, 40);
+                        var cont = (m.contraindicacoes || '').slice(0, 40);
+                        return '<tr><td>' + m.id + '</td><td>' + escapeHtml(m.nome) + '</td><td>' + escapeHtml(m.classe_farmacologica || '-') + '</td><td>' + escapeHtml(m.dose || '-') + '</td><td>' + escapeHtml(ind) + '</td><td>' + escapeHtml(cont) + '</td></tr>';
+                    }).join('');
+                }).catch(function() {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o backend.</td></tr>';
+                });
+            }
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                var btn = form.querySelector('button[type="submit"]');
+                btn.disabled = true;
+                api.cadastrarMedicamento({
+                    nome: document.getElementById('nome-medicamento').value,
+                    classe: document.getElementById('classe').value || '',
+                    dose: document.getElementById('dose').value || '',
+                    indicacao: document.getElementById('indicacao').value || '',
+                    contraindicacoes: document.getElementById('contraindicacoes').value || ''
+                }).then(function() {
+                    form.reset();
+                    loadMedicamentos();
+                    btn.disabled = false;
+                    alert('Medicamento cadastrado com sucesso!');
+                }).catch(function(err) {
+                    btn.disabled = false;
+                    alert('Erro: ' + (err.message || 'Não foi possível cadastrar.'));
+                });
+            });
+
+            loadMedicamentos();
+        })();
+    </script>
+</body>
+</html>

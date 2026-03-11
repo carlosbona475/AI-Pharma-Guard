@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pharma Guard - Selecionar Paciente</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>AI Pharma Guard</h1>
+    </header>
+    <div id="container">
+        <nav id="menu-lateral">
+            <h2>Menu</h2>
+            <ul>
+                <li>
+                    <h3>Pacientes</h3>
+                    <ul>
+                        <li><a href="cadastrar_paciente.html">Cadastrar paciente</a></li>
+                        <li><a href="lista_pacientes.html">Listar pacientes cadastrados</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <h3>Medicamentos</h3>
+                    <ul>
+                        <li><a href="medicamentos_paciente.html">Cadastrar medicamento</a></li>
+                        <li><a href="lista_medicamentos.html">Listar medicamentos</a></li>
+                    </ul>
+                </li>
+                <li>
+                    <h3>Análise de Interações</h3>
+                    <ul>
+                        <li><a href="selecionar_paciente.html">Selecionar paciente</a></li>
+                        <li><a href="verificar_interacoes.html">Analisar interações medicamentosas</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </nav>
+        <main>
+            <h2>Selecionar Paciente</h2>
+            <form>
+                <label for="paciente">Escolha um paciente:</label>
+                <select id="paciente" name="paciente">
+                    <option value="1">Paciente 1</option>
+                    <option value="2">Paciente 2</option>
+                </select>
+                <button type="submit">Selecionar</button>
+            </form>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+[
+    {
+        "nome": "Medicamento A",
+        "classe": "Classe A",
+        "dose": "100mg",
+        "indicacao": "Tratamento de condição A",
+        "contraindicacoes": "Nenhuma"
+    },
+    {
+        "nome": "Medicamento B",
+        "classe": "Classe B",
+        "dose": "200mg",
+        "indicacao": "Tratamento de condição B",
+        "contraindicacoes": "Alergia"
+    }
+]

@@ -1,0 +1,9 @@
+[
+    {
+        "medicamentoA": "Medicamento A",
+        "medicamentoB": "Medicamento B",
+        "tipo_interacao": "Aumento de Eficácia",
+        "nivel_risco": "Alto",
+        "recomendacao": "Monitorar uso"
+    }
+]

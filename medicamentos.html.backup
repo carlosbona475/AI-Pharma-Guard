@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Pharma Guard - Medicamentos</title>
+    <link rel="stylesheet" href="style_profissional.css">
+</head>
+<body>
+    <header id="barra-superior">
+        <h1>AI Pharma Guard</h1>
+    </header>
+    <div id="container">
+        <nav id="menu-lateral">
+            <h2>Menu</h2>
+            <ul>
+                <li><a href="dashboard.html">Dashboard</a></li>
+                <li><a href="pacientes.html">Pacientes</a></li>
+                <li><a href="medicamentos.html">Medicamentos</a></li>
+                <li><a href="interacoes.html">Interações</a></li>
+            </ul>
+        </nav>
+        <main>
+            <h2>Cadastro de Medicamento</h2>
+            <form>
+                <label for="nome-medicamento">Nome do Medicamento:</label>
+                <input type="text" id="nome-medicamento" name="nome-medicamento" required>
+                <label for="classe">Classe Farmacológica:</label>
+                <input type="text" id="classe" name="classe">
+                <label for="dose">Dose:</label>
+                <input type="text" id="dose" name="dose">
+                <label for="indicacao">Indicação:</label>
+                <input type="text" id="indicacao" name="indicacao">
+                <label for="contraindicacoes">Contraindicações:</label>
+                <input type="text" id="contraindicacoes" name="contraindicacoes">
+                <button type="submit">Cadastrar Medicamento</button>
+            </form>
+            <h3>Lista de Medicamentos</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Classe</th>
+                        <th>Dose</th>
+                        <th>Indicação</th>
+                        <th>Contraindicações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Os dados dos medicamentos serão inseridos aqui -->
+                </tbody>
+            </table>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
