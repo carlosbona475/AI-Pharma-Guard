@@ -1,0 +1,46 @@
+﻿CREATE DATABASE IF NOT EXISTS farmacia;
+USE farmacia;
+
+CREATE TABLE IF NOT EXISTS farmacias (
+ id INT AUTO_INCREMENT PRIMARY KEY,
+ nome VARCHAR(150) NOT NULL,
+ email VARCHAR(150) UNIQUE NOT NULL,
+ senha VARCHAR(255) NOT NULL,
+ telefone VARCHAR(50),
+ data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS pacientes (
+ id INT AUTO_INCREMENT PRIMARY KEY,
+ farmacia_id INT NOT NULL,
+ nome VARCHAR(100) NOT NULL,
+ idade INT NOT NULL,
+ sexo ENUM('masculino','feminino'),
+ doencas TEXT,
+ medicamentos_usados TEXT,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (farmacia_id) REFERENCES farmacias(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS medicamentos (
+ id INT AUTO_INCREMENT PRIMARY KEY,
+ farmacia_id INT NOT NULL,
+ nome VARCHAR(100) NOT NULL,
+ classe_farmacologica VARCHAR(100),
+ dose VARCHAR(50),
+ indicacao TEXT,
+ contraindicacoes TEXT,
+ created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ FOREIGN KEY (farmacia_id) REFERENCES farmacias(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS interacoes (
+ id INT AUTO_INCREMENT PRIMARY KEY,
+ farmacia_id INT NOT NULL,
+ medicamentoA INT NOT NULL,
+ medicamentoB INT NOT NULL,
+ tipo_interacao VARCHAR(100),
+ nivel_risco ENUM('baixo','medio','alto'),
+ recomendacao TEXT,
+ FOREIGN KEY (farmacia_id) REFERENCES farmacias(id) ON DELETE CASCADE
+);
