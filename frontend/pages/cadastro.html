@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Farmácia - AI Pharma Guard</title>
+    <link rel="stylesheet" href="../css/app.css">
+</head>
+<body>
+    <main class="app-main" style="margin-left: 0; margin-top: 0; max-width: 520px; margin: 48px auto; padding: 24px;">
+        <h1 class="page-title">Criar conta da Farmácia</h1>
+        <div class="card">
+            <form id="cadastro-form" class="form-grid">
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="nome">Nome da farmácia</label>
+                    <input type="text" id="nome" name="nome" required placeholder="Nome da farmácia">
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" name="email" required placeholder="contato@farmacia.com">
+                </div>
+                <div class="form-group">
+                    <label for="senha">Senha</label>
+                    <input type="password" id="senha" name="senha" required placeholder="Senha">
+                </div>
+                <div class="form-group">
+                    <label for="telefone">Telefone</label>
+                    <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000">
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Criar Conta</button>
+                </div>
+            </form>
+            <p style="margin-top: 16px; color: var(--text-muted);">
+                Já tem conta? <a href="login.html">Faça login</a>
+            </p>
+            <p id="cadastro-msg" style="margin-top: 8px;"></p>
+        </div>
+    </main>
+    <script>
+        document.getElementById('cadastro-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var nome = document.getElementById('nome').value;
+            var email = document.getElementById('email').value;
+            var senha = document.getElementById('senha').value;
+            var telefone = document.getElementById('telefone').value;
+            var msgEl = document.getElementById('cadastro-msg');
+            msgEl.textContent = '';
+
+            fetch('../backend/cadastro_farmacia.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nome: nome, email: email, senha: senha, telefone: telefone })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                msgEl.style.color = data.success ? 'var(--risk-none)' : 'var(--risk-severe)';
+                msgEl.textContent = data.message || (data.success ? 'Cadastro realizado.' : 'Erro ao cadastrar.');
+                if (data.success) {
+                    setTimeout(function() { window.location.href = 'login.html'; }, 1500);
+                }
+            })
+            .catch(function(err) {
+                console.error('Erro no cadastro:', err);
+                msgEl.style.color = 'var(--risk-severe)';
+                msgEl.textContent = 'Erro ao conectar. Verifique se o servidor está rodando.';
+            });
+        });
+    </script>
+</body>
+</html>
