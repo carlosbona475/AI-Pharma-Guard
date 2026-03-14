@@ -27,42 +27,36 @@ function sendError($message, $code = 500) {
     sendJson(['error' => $message]);
 }
 
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "farmacia";
-
-$conn = @new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    sendError('Conexão falhou: ' . $conn->connect_error, 500);
-}
-
-$conn->set_charset("utf8");
+require_once __DIR__ . '/db.php';
 
 // ---- ESTATÍSTICAS (Dashboard) ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'estatisticas') {
-    $q1 = $conn->query("SELECT COUNT(*) as total FROM pacientes");
-    $q2 = $conn->query("SELECT COUNT(*) as total FROM medicamentos");
-    $q3 = $conn->query("SELECT COUNT(*) as total FROM interacoes");
-    if (!$q1 || !$q2 || !$q3) {
+    try {
+        $q1 = $pdo->query("SELECT COUNT(*) as total FROM pacientes");
+        $q2 = $pdo->query("SELECT COUNT(*) as total FROM medicamentos");
+        $q3 = $pdo->query("SELECT COUNT(*) as total FROM interacoes");
+        $pacientes = (int) $q1->fetch(PDO::FETCH_ASSOC)['total'];
+        $medicamentos = (int) $q2->fetch(PDO::FETCH_ASSOC)['total'];
+        $interacoes = (int) $q3->fetch(PDO::FETCH_ASSOC)['total'];
+        sendJson([
+            'pacientes' => $pacientes,
+            'medicamentos' => $medicamentos,
+            'interacoes_cadastradas' => $interacoes
+        ]);
+    } catch (PDOException $e) {
         sendError('Erro ao consultar estatísticas. Verifique se o banco e as tabelas existem.', 500);
     }
-    $pacientes = (int) $q1->fetch_assoc()['total'];
-    $medicamentos = (int) $q2->fetch_assoc()['total'];
-    $interacoes = (int) $q3->fetch_assoc()['total'];
-    sendJson([
-        'pacientes' => $pacientes,
-        'medicamentos' => $medicamentos,
-        'interacoes_cadastradas' => $interacoes
-    ]);
 }
 
 // ---- LISTAR PACIENTES ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_pacientes') {
-    $result = $conn->query("SELECT * FROM pacientes ORDER BY nome");
-    $pacientes = ($result && $result->num_rows >= 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
-    sendJson($pacientes);
+    try {
+        $result = $pdo->query("SELECT * FROM pacientes ORDER BY nome");
+        $pacientes = $result ? $result->fetchAll(PDO::FETCH_ASSOC) : [];
+        sendJson($pacientes);
+    } catch (PDOException $e) {
+        sendError('Erro ao listar pacientes.', 500);
+    }
 }
 
 // ---- CADASTRAR PACIENTE ----
@@ -73,37 +67,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         sendJson(['success' => false, 'message' => 'Dados inválidos']);
         exit;
     }
-    $stmt = $conn->prepare("INSERT INTO pacientes (nome, idade, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-    if (!$stmt) {
-        sendJson(['success' => false, 'message' => 'Erro ao preparar comando']);
+    try {
+        $stmt = $pdo->prepare("INSERT INTO pacientes (nome, idade, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $data['nome'],
+            isset($data['idade']) ? (int)$data['idade'] : 0,
+            isset($data['sexo']) ? $data['sexo'] : 'masculino',
+            isset($data['doencas']) ? $data['doencas'] : '',
+            isset($data['medicamentos']) ? $data['medicamentos'] : '',
+            isset($data['alergias']) ? $data['alergias'] : '',
+            isset($data['historico_clinico']) ? $data['historico_clinico'] : '',
+            isset($data['observacoes']) ? $data['observacoes'] : ''
+        ]);
+        sendJson(['success' => true, 'id' => (int)$pdo->lastInsertId()]);
+        exit;
+    } catch (PDOException $e) {
+        sendJson(['success' => false, 'message' => $e->getMessage()]);
         exit;
     }
-    $alergias = isset($data['alergias']) ? $data['alergias'] : '';
-    $historico = isset($data['historico_clinico']) ? $data['historico_clinico'] : '';
-    $observacoes = isset($data['observacoes']) ? $data['observacoes'] : '';
-    $stmt->bind_param("sissssss",
-        $data['nome'],
-        isset($data['idade']) ? (int)$data['idade'] : 0,
-        isset($data['sexo']) ? $data['sexo'] : 'masculino',
-        isset($data['doencas']) ? $data['doencas'] : '',
-        isset($data['medicamentos']) ? $data['medicamentos'] : '',
-        $alergias,
-        $historico,
-        $observacoes
-    );
-    if ($stmt->execute()) {
-        sendJson(['success' => true, 'id' => (int)$conn->insert_id]);
-        exit;
-    }
-    sendJson(['success' => false, 'message' => $stmt->error ?: 'Erro ao cadastrar']);
-    exit;
 }
 
 // ---- LISTAR MEDICAMENTOS ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_medicamentos') {
-    $result = $conn->query("SELECT * FROM medicamentos ORDER BY nome");
-    $medicamentos = ($result && $result->num_rows >= 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
-    sendJson($medicamentos);
+    try {
+        $result = $pdo->query("SELECT * FROM medicamentos ORDER BY nome");
+        $medicamentos = $result ? $result->fetchAll(PDO::FETCH_ASSOC) : [];
+        sendJson($medicamentos);
+    } catch (PDOException $e) {
+        sendError('Erro ao listar medicamentos.', 500);
+    }
 }
 
 // ---- CADASTRAR MEDICAMENTO ----
@@ -113,34 +105,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     if (!$data || empty($data['nome'])) {
         sendError('Dados inválidos', 400);
     }
-    $stmt = $conn->prepare("INSERT INTO medicamentos (nome, classe_farmacologica, dose, indicacao, contraindicacoes) VALUES (?, ?, ?, ?, ?)");
-    if (!$stmt) {
-        sendError('Erro ao preparar comando', 500);
+    try {
+        $stmt = $pdo->prepare("INSERT INTO medicamentos (nome, classe_farmacologica, dose, indicacao, contraindicacoes) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([
+            $data['nome'],
+            isset($data['classe']) ? $data['classe'] : '',
+            isset($data['dose']) ? $data['dose'] : '',
+            isset($data['indicacao']) ? $data['indicacao'] : '',
+            isset($data['contraindicacoes']) ? $data['contraindicacoes'] : ''
+        ]);
+        sendJson(['message' => 'Medicamento cadastrado com sucesso!', 'id' => (int)$pdo->lastInsertId()]);
+    } catch (PDOException $e) {
+        sendError($e->getMessage(), 500);
     }
-    $stmt->bind_param("sssss",
-        $data['nome'],
-        isset($data['classe']) ? $data['classe'] : '',
-        isset($data['dose']) ? $data['dose'] : '',
-        isset($data['indicacao']) ? $data['indicacao'] : '',
-        isset($data['contraindicacoes']) ? $data['contraindicacoes'] : ''
-    );
-    if ($stmt->execute()) {
-        sendJson(['message' => 'Medicamento cadastrado com sucesso!', 'id' => (int)$conn->insert_id]);
-    }
-    sendError($stmt->error ?: 'Erro ao cadastrar', 500);
 }
 
 // ---- LISTAR INTERAÇÕES ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_interacoes') {
-    $result = $conn->query("
-        SELECT i.*, ma.nome AS nomeA, mb.nome AS nomeB
-        FROM interacoes i
-        JOIN medicamentos ma ON ma.id = i.medicamentoA
-        JOIN medicamentos mb ON mb.id = i.medicamentoB
-        ORDER BY i.nivel_risco DESC, ma.nome
-    ");
-    $lista = ($result && $result->num_rows >= 0) ? $result->fetch_all(MYSQLI_ASSOC) : [];
-    sendJson($lista);
+    try {
+        $result = $pdo->query("
+            SELECT i.*, ma.nome AS \"nomeA\", mb.nome AS \"nomeB\"
+            FROM interacoes i
+            JOIN medicamentos ma ON ma.id = i.\"medicamentoA\"
+            JOIN medicamentos mb ON mb.id = i.\"medicamentoB\"
+            ORDER BY i.nivel_risco DESC, ma.nome
+        ");
+        $lista = $result ? $result->fetchAll(PDO::FETCH_ASSOC) : [];
+        sendJson($lista);
+    } catch (PDOException $e) {
+        sendError('Erro ao listar interações.', 500);
+    }
 }
 
 // ---- CADASTRAR INTERAÇÃO ----
@@ -155,15 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     $nivel = isset($data['nivel_risco']) && in_array($data['nivel_risco'], ['baixo', 'medio', 'alto']) ? $data['nivel_risco'] : 'medio';
     $tipo = isset($data['tipo_interacao']) ? $data['tipo_interacao'] : '';
     $recomendacao = isset($data['recomendacao']) ? $data['recomendacao'] : '';
-    $stmt = $conn->prepare("INSERT INTO interacoes (medicamentoA, medicamentoB, tipo_interacao, nivel_risco, recomendacao) VALUES (?, ?, ?, ?, ?)");
-    if (!$stmt) {
-        sendError('Erro ao preparar comando', 500);
+    try {
+        $stmt = $pdo->prepare("INSERT INTO interacoes (\"medicamentoA\", \"medicamentoB\", tipo_interacao, nivel_risco, recomendacao) VALUES (?, ?, ?, ?, ?)");
+        $stmt->execute([$medA, $medB, $tipo, $nivel, $recomendacao]);
+        sendJson(['message' => 'Interação cadastrada com sucesso!', 'id' => (int)$pdo->lastInsertId()]);
+    } catch (PDOException $e) {
+        sendError($e->getMessage(), 500);
     }
-    $stmt->bind_param("iisss", $medA, $medB, $tipo, $nivel, $recomendacao);
-    if ($stmt->execute()) {
-        sendJson(['message' => 'Interação cadastrada com sucesso!', 'id' => (int)$conn->insert_id]);
-    }
-    sendError($stmt->error ?: 'Erro ao cadastrar', 500);
 }
 
 // ---- VERIFICAR INTERAÇÕES ----
@@ -176,31 +168,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     }, $medicamentos))));
 
     $interacoes = [];
-    $stmt = $conn->prepare("
-        SELECT i.*, ma.nome AS nomeA, mb.nome AS nomeB
-        FROM interacoes i
-        JOIN medicamentos ma ON ma.id = i.medicamentoA
-        JOIN medicamentos mb ON mb.id = i.medicamentoB
-        WHERE (i.medicamentoA = ? AND i.medicamentoB = ?) OR (i.medicamentoA = ? AND i.medicamentoB = ?)
-    ");
-    if ($stmt) {
+    try {
+        $stmt = $pdo->prepare("
+            SELECT i.*, ma.nome AS \"nomeA\", mb.nome AS \"nomeB\"
+            FROM interacoes i
+            JOIN medicamentos ma ON ma.id = i.\"medicamentoA\"
+            JOIN medicamentos mb ON mb.id = i.\"medicamentoB\"
+            WHERE (i.\"medicamentoA\" = ? AND i.\"medicamentoB\" = ?) OR (i.\"medicamentoA\" = ? AND i.\"medicamentoB\" = ?)
+        ");
         for ($i = 0; $i < count($ids); $i++) {
             for ($j = $i + 1; $j < count($ids); $j++) {
                 $a = $ids[$i];
                 $b = $ids[$j];
-                $stmt->bind_param("iiii", $a, $b, $b, $a);
-                $stmt->execute();
-                $res = $stmt->get_result();
-                if ($res) {
-                    while ($row = $res->fetch_assoc()) {
-                        $interacoes[] = $row;
-                    }
+                $stmt->execute([$a, $b, $b, $a]);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($rows as $row) {
+                    $interacoes[] = $row;
                 }
             }
         }
+    } catch (PDOException $e) {
+        sendError('Erro ao verificar interações.', 500);
     }
     sendJson($interacoes);
 }
 
-$conn->close();
 sendError('Ação não reconhecida', 400);

@@ -1,54 +1,44 @@
-﻿<?php
+<?php
 header('Content-Type: application/json');
 ini_set('display_errors', '0');
 ob_start();
 session_start();
 
-function sendJson(,  = 200) {
-    http_response_code();
+function sendJson($data, $code = 200) {
+    http_response_code($code);
     ob_end_clean();
-    echo json_encode(, JSON_UNESCAPED_UNICODE);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
- = 'localhost';
-   = 'root';
-   = '';
-     = 'farmacia';
+require_once __DIR__ . '/db.php';
 
- = @new mysqli(, , , );
-if (->connect_error) {
-    sendJson(['success' => false, 'message' => 'Erro de conexão com o banco.'], 500);
-}
-->set_charset('utf8');
+$raw = file_get_contents('php://input');
+$data = $raw ? json_decode($raw, true) : null;
 
-  = file_get_contents('php://input');
- =  ? json_decode(, true) : null;
+$email = trim($data['email'] ?? '');
+$senha = $data['senha'] ?? '';
 
- = trim(['email'] ?? '');
- = ['senha'] ?? '';
-
-if ( === '' ||  === '') {
+if ($email === '' || $senha === '') {
     sendJson(['success' => false, 'message' => 'E-mail e senha são obrigatórios.'], 400);
 }
 
- = ->prepare('SELECT id, senha FROM farmacias WHERE email = ?');
-if (!) {
+try {
+    $stmt = $pdo->prepare('SELECT id, senha FROM farmacias WHERE email = ?');
+    $stmt->execute([$email]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
     sendJson(['success' => false, 'message' => 'Erro ao preparar comando.'], 500);
 }
-->bind_param('s', );
-->execute();
- = ->get_result();
 
-if (! || ->num_rows === 0) {
+if (!$row) {
     sendJson(['success' => false, 'message' => 'Login inválido.'], 401);
 }
 
- = ->fetch_assoc();
-if (!password_verify(, ['senha'])) {
+if (!password_verify($senha, $row['senha'])) {
     sendJson(['success' => false, 'message' => 'Login inválido.'], 401);
 }
 
-['farmacia_id'] = (int)['id'];
+$_SESSION['farmacia_id'] = (int) $row['id'];
 
 sendJson(['success' => true]);

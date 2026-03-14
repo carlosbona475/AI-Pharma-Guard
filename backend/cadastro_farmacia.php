@@ -1,53 +1,40 @@
-﻿<?php
+<?php
 header('Content-Type: application/json');
 ini_set('display_errors', '0');
 ob_start();
 session_start();
 
-function sendJson(,  = 200) {
-    http_response_code();
+function sendJson($data, $code = 200) {
+    http_response_code($code);
     ob_end_clean();
-    echo json_encode(, JSON_UNESCAPED_UNICODE);
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
     exit;
 }
 
- = 'localhost';
-   = 'root';
-   = '';
-     = 'farmacia';
+require_once __DIR__ . '/db.php';
 
- = @new mysqli(, , , );
-if (->connect_error) {
-    sendJson(['success' => false, 'message' => 'Erro de conexão com o banco.'], 500);
-}
-->set_charset('utf8');
+$raw = file_get_contents('php://input');
+$data = $raw ? json_decode($raw, true) : null;
 
-  = file_get_contents('php://input');
- =  ? json_decode(, true) : null;
+$nome = trim($data['nome'] ?? '');
+$email = trim($data['email'] ?? '');
+$senha = $data['senha'] ?? '';
+$telefone = trim($data['telefone'] ?? '');
 
-     = trim(['nome'] ?? '');
-    = trim(['email'] ?? '');
-    = ['senha'] ?? '';
- = trim(['telefone'] ?? '');
-
-if ( === '' ||  === '' ||  === '') {
+if ($nome === '' || $email === '' || $senha === '') {
     sendJson(['success' => false, 'message' => 'Campos obrigatórios não preenchidos.'], 400);
 }
 
- = password_hash(, PASSWORD_DEFAULT);
+$senhaHash = password_hash($senha, PASSWORD_DEFAULT);
 
- = ->prepare('INSERT INTO farmacias (nome, email, senha, telefone) VALUES (?, ?, ?, ?)');
-if (!) {
-    sendJson(['success' => false, 'message' => 'Erro ao preparar comando.'], 500);
-}
-->bind_param('ssss', , , , );
-
-if (->execute()) {
+try {
+    $stmt = $pdo->prepare('INSERT INTO farmacias (nome, email, senha, telefone) VALUES (?, ?, ?, ?)');
+    $stmt->execute([$nome, $email, $senhaHash, $telefone]);
     sendJson(['success' => true, 'message' => 'Farmácia cadastrada com sucesso']);
+} catch (PDOException $e) {
+    // PostgreSQL unique violation
+    if ($e->getCode() === '23505') {
+        sendJson(['success' => false, 'message' => 'E-mail já cadastrado.'], 400);
+    }
+    sendJson(['success' => false, 'message' => 'Erro ao cadastrar'], 500);
 }
-
-if (->errno === 1062) {
-    sendJson(['success' => false, 'message' => 'E-mail já cadastrado.'], 400);
-}
-
-sendJson(['success' => false, 'message' => 'Erro ao cadastrar'], 500);
