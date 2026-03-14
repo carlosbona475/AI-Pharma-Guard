@@ -1,12 +1,7 @@
 FROM php:8.2-apache
 
-# Copiar código do projeto para o diretório do Apache
+RUN docker-php-ext-install mysqli pdo pdo_mysql
+
 COPY . /var/www/html/
 
-# Configurar permissões
-RUN chown -R www-data:www-data /var/www/html
-
-# Expor porta
 EXPOSE 80
-
-# Apache já inicia automaticamente com a imagem base

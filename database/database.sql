@@ -1,4 +1,4 @@
-﻿CREATE DATABASE IF NOT EXISTS farmacia;
+CREATE DATABASE IF NOT EXISTS farmacia;
 USE farmacia;
 
 CREATE TABLE IF NOT EXISTS farmacias (
@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS pacientes (
  sexo ENUM('masculino','feminino'),
  doencas TEXT,
  medicamentos_usados TEXT,
+ alergias TEXT,
+ historico_clinico TEXT,
+ observacoes TEXT,
  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
  FOREIGN KEY (farmacia_id) REFERENCES farmacias(id) ON DELETE CASCADE
 );

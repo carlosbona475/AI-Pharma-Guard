@@ -70,23 +70,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     $raw = file_get_contents('php://input');
     $data = $raw ? json_decode($raw, true) : null;
     if (!$data || empty($data['nome'])) {
-        sendError('Dados inválidos', 400);
+        sendJson(['success' => false, 'message' => 'Dados inválidos']);
+        exit;
     }
-    $stmt = $conn->prepare("INSERT INTO pacientes (nome, idade, sexo, doencas, medicamentos_usados) VALUES (?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO pacientes (nome, idade, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     if (!$stmt) {
-        sendError('Erro ao preparar comando', 500);
+        sendJson(['success' => false, 'message' => 'Erro ao preparar comando']);
+        exit;
     }
-    $stmt->bind_param("sisss",
+    $alergias = isset($data['alergias']) ? $data['alergias'] : '';
+    $historico = isset($data['historico_clinico']) ? $data['historico_clinico'] : '';
+    $observacoes = isset($data['observacoes']) ? $data['observacoes'] : '';
+    $stmt->bind_param("sissssss",
         $data['nome'],
         isset($data['idade']) ? (int)$data['idade'] : 0,
         isset($data['sexo']) ? $data['sexo'] : 'masculino',
         isset($data['doencas']) ? $data['doencas'] : '',
-        isset($data['medicamentos']) ? $data['medicamentos'] : ''
+        isset($data['medicamentos']) ? $data['medicamentos'] : '',
+        $alergias,
+        $historico,
+        $observacoes
     );
     if ($stmt->execute()) {
-        sendJson(['message' => 'Paciente cadastrado com sucesso!', 'id' => (int)$conn->insert_id]);
+        sendJson(['success' => true, 'id' => (int)$conn->insert_id]);
+        exit;
     }
-    sendError($stmt->error ?: 'Erro ao cadastrar', 500);
+    sendJson(['success' => false, 'message' => $stmt->error ?: 'Erro ao cadastrar']);
+    exit;
 }
 
 // ---- LISTAR MEDICAMENTOS ----

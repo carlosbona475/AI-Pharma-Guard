@@ -53,6 +53,18 @@
                     <label for="medicamentos">Medicamentos em uso</label>
                     <input type="text" id="medicamentos" name="medicamentos" placeholder="Medicamentos em uso">
                 </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="alergias">Alergias</label>
+                    <textarea id="alergias" name="alergias" rows="2" placeholder="Alergias conhecidas (medicamentos, substâncias)"></textarea>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="historico_clinico">Histórico clínico</label>
+                    <textarea id="historico_clinico" name="historico_clinico" rows="3" placeholder="Histórico clínico relevante"></textarea>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <label for="observacoes">Observações farmacêuticas</label>
+                    <textarea id="observacoes" name="observacoes" rows="2" placeholder="Observações do farmacêutico"></textarea>
+                </div>
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary">Cadastrar Paciente</button>
                 </div>
@@ -110,8 +122,11 @@
                     idade: parseInt(document.getElementById('idade').value, 10) || 0,
                     sexo: document.getElementById('sexo').value,
                     doencas: document.getElementById('doencas').value || '',
-                    medicamentos: document.getElementById('medicamentos').value || ''
-                }).then(function() {
+                    medicamentos: document.getElementById('medicamentos').value || '',
+                    alergias: document.getElementById('alergias').value || '',
+                    historico_clinico: document.getElementById('historico_clinico').value || '',
+                    observacoes: document.getElementById('observacoes').value || ''
+                }).then(function(data) {
                     form.reset();
                     loadPacientes();
                     btn.disabled = false;
