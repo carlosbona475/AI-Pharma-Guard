@@ -4,29 +4,30 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Pharma Guard</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="frontend/css/app.css">
 </head>
 <body>
-    <header id="barra-superior">
+    <header class="app-topbar">
         <h1>AI Pharma Guard</h1>
     </header>
-    <div id="container">
-        <nav id="menu-lateral">
-            <h2>Menu</h2>
+    <aside class="app-sidebar">
+        <nav>
+            <div class="nav-title">Navegação</div>
             <ul>
-                <li><a href="dashboard.html">Dashboard</a></li>
-                <li><a href="cadastrar_paciente.html">Pacientes</a></li>
-                <li><a href="medicamentos_paciente.html">Medicamentos</a></li>
-                <li><a href="verificar_interacoes.html">Interações</a></li>
-                <li><a href="relatorios.html">Relatórios</a></li>
-                <li><a href="configuracoes.html">Configurações</a></li>
+                <li><a href="frontend/pages/dashboard.html">Dashboard</a></li>
+                <li><a href="frontend/pages/pacientes.html">Pacientes</a></li>
+                <li><a href="frontend/pages/medicamentos.html">Medicamentos</a></li>
+                <li><a href="frontend/pages/interacoes.html">Interações</a></li>
+                <li><a href="frontend/pages/relatorios.html">Relatórios</a></li>
+                <li><a href="frontend/pages/login.html">Login</a></li>
+                <li><a href="frontend/pages/cadastro.html">Cadastrar Farmácia</a></li>
             </ul>
         </nav>
-        <main>
-            <h2>Bem-vindo ao AI Pharma Guard</h2>
-            <p>Utilize o menu para navegar pelas funcionalidades do sistema.</p>
-        </main>
-    </div>
-    <script src="app.js"></script>
+    </aside>
+    <main class="app-main">
+        <h1 class="page-title">Bem-vindo ao AI Pharma Guard</h1>
+        <p class="page-subtitle">Use o menu ao lado para acessar Dashboard, Pacientes, Medicamentos, Interações e Relatórios.</p>
+    </main>
+    <script src="frontend/js/app.js"></script>
 </body>
 </html>
