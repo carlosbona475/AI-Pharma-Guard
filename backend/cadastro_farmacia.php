@@ -1,5 +1,5 @@
 <?php
-header('Content-Type: application/json');
+header('Content-Type: application/json; charset=UTF-8');
 ini_set('display_errors', '0');
 ob_start();
 session_start();
@@ -11,7 +11,11 @@ function sendJson($data, $code = 200) {
     exit;
 }
 
-require_once __DIR__ . '/db.php';
+try {
+    require_once __DIR__ . '/db.php';
+} catch (Throwable $e) {
+    sendJson(['success' => false, 'message' => 'Erro de conexão.'], 500);
+}
 
 $raw = file_get_contents('php://input');
 $data = $raw ? json_decode($raw, true) : null;
