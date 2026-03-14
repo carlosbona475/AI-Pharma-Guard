@@ -27,7 +27,8 @@ function sendError($message, $code = 500) {
     exit;
 }
 
-require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/config/database.php';
+$conn = getConnection();
 
 // SaaS multi-farmácia: usar farmácia da sessão ou padrão 1 (evita NOT NULL no INSERT)
 $farmacia_id = isset($_SESSION['farmacia_id']) ? (int) $_SESSION['farmacia_id'] : 1;
@@ -35,13 +36,13 @@ $farmacia_id = isset($_SESSION['farmacia_id']) ? (int) $_SESSION['farmacia_id'] 
 // ---- ESTATÍSTICAS (Dashboard) ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'estatisticas') {
     try {
-        $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM pacientes WHERE farmacia_id = ?");
+        $stmt = $conn->prepare("SELECT COUNT(*) as total FROM pacientes WHERE farmacia_id = ?");
         $stmt->execute([$farmacia_id]);
         $pacientes = (int) $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-        $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM medicamentos WHERE farmacia_id = ?");
+        $stmt = $conn->prepare("SELECT COUNT(*) as total FROM medicamentos WHERE farmacia_id = ?");
         $stmt->execute([$farmacia_id]);
         $medicamentos = (int) $stmt->fetch(PDO::FETCH_ASSOC)['total'];
-        $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM interacoes WHERE farmacia_id = ?");
+        $stmt = $conn->prepare("SELECT COUNT(*) as total FROM interacoes WHERE farmacia_id = ?");
         $stmt->execute([$farmacia_id]);
         $interacoes = (int) $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         sendJson([
@@ -57,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
 // ---- LISTAR PACIENTES ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_pacientes') {
     try {
-        $stmt = $pdo->prepare("SELECT * FROM pacientes WHERE farmacia_id = ? ORDER BY nome");
+        $stmt = $conn->prepare("SELECT * FROM pacientes WHERE farmacia_id = ? ORDER BY nome");
         $stmt->execute([$farmacia_id]);
         $pacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         sendJson($pacientes);
@@ -75,7 +76,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         exit;
     }
     try {
-        $stmt = $pdo->prepare("INSERT INTO pacientes (farmacia_id, nome, idade, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO pacientes (farmacia_id, nome, idade, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $farmacia_id,
             trim($data['nome']),
@@ -87,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
             isset($data['historico_clinico']) ? $data['historico_clinico'] : '',
             isset($data['observacoes']) ? $data['observacoes'] : '',
         ]);
-        sendJson(['success' => true, 'id' => (int) $pdo->lastInsertId()]);
+        sendJson(['success' => true, 'id' => (int) $conn->lastInsertId()]);
         exit;
     } catch (PDOException $e) {
         sendJson(['success' => false, 'message' => $e->getMessage()]);
@@ -98,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 // ---- LISTAR MEDICAMENTOS ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_medicamentos') {
     try {
-        $stmt = $pdo->prepare("SELECT * FROM medicamentos WHERE farmacia_id = ? ORDER BY nome");
+        $stmt = $conn->prepare("SELECT * FROM medicamentos WHERE farmacia_id = ? ORDER BY nome");
         $stmt->execute([$farmacia_id]);
         $medicamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         sendJson($medicamentos);
@@ -115,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         sendError('Dados inválidos', 400);
     }
     try {
-        $stmt = $pdo->prepare("INSERT INTO medicamentos (farmacia_id, nome, classe_farmacologica, dose, indicacao, contraindicacoes) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO medicamentos (farmacia_id, nome, classe_farmacologica, dose, indicacao, contraindicacoes) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $farmacia_id,
             trim($data['nome']),
@@ -124,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
             isset($data['indicacao']) ? $data['indicacao'] : '',
             isset($data['contraindicacoes']) ? $data['contraindicacoes'] : ''
         ]);
-        sendJson(['message' => 'Medicamento cadastrado com sucesso!', 'id' => (int) $pdo->lastInsertId()]);
+        sendJson(['message' => 'Medicamento cadastrado com sucesso!', 'id' => (int) $conn->lastInsertId()]);
     } catch (PDOException $e) {
         sendError($e->getMessage(), 500);
     }
@@ -133,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 // ---- LISTAR INTERAÇÕES ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_interacoes') {
     try {
-        $stmt = $pdo->prepare("
+        $stmt = $conn->prepare("
             SELECT i.id, i.farmacia_id, i.medicamento_a AS \"medicamentoA\", i.medicamento_b AS \"medicamentoB\",
                    i.tipo_interacao, i.nivel_risco, i.recomendacao,
                    ma.nome AS \"nomeA\", mb.nome AS \"nomeB\"
@@ -164,9 +165,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     $tipo = isset($data['tipo_interacao']) ? $data['tipo_interacao'] : '';
     $recomendacao = isset($data['recomendacao']) ? $data['recomendacao'] : '';
     try {
-        $stmt = $pdo->prepare("INSERT INTO interacoes (farmacia_id, medicamento_a, medicamento_b, tipo_interacao, nivel_risco, recomendacao) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt = $conn->prepare("INSERT INTO interacoes (farmacia_id, medicamento_a, medicamento_b, tipo_interacao, nivel_risco, recomendacao) VALUES (?, ?, ?, ?, ?, ?)");
         $stmt->execute([$farmacia_id, $medA, $medB, $tipo, $nivel, $recomendacao]);
-        sendJson(['message' => 'Interação cadastrada com sucesso!', 'id' => (int) $pdo->lastInsertId()]);
+        sendJson(['message' => 'Interação cadastrada com sucesso!', 'id' => (int) $conn->lastInsertId()]);
     } catch (PDOException $e) {
         sendError($e->getMessage(), 500);
     }
@@ -183,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 
     $interacoes = [];
     try {
-        $stmt = $pdo->prepare("
+        $stmt = $conn->prepare("
             SELECT i.id, i.farmacia_id, i.medicamento_a AS \"medicamentoA\", i.medicamento_b AS \"medicamentoB\",
                    i.tipo_interacao, i.nivel_risco, i.recomendacao,
                    ma.nome AS \"nomeA\", mb.nome AS \"nomeB\"

@@ -11,11 +11,8 @@ function sendJson($data, $code = 200) {
     exit;
 }
 
-try {
-    require_once __DIR__ . '/db.php';
-} catch (Throwable $e) {
-    sendJson(['success' => false, 'message' => 'Erro de conexão.'], 500);
-}
+require_once __DIR__ . '/config/database.php';
+$conn = getConnection();
 
 $raw = file_get_contents('php://input');
 $data = $raw ? json_decode($raw, true) : null;
@@ -29,7 +26,7 @@ if ($email === '' || $senha === '') {
 }
 
 try {
-    $stmt = $pdo->prepare('SELECT id, senha FROM farmacias WHERE email = ?');
+    $stmt = $conn->prepare('SELECT id, senha FROM farmacias WHERE email = ?');
     $stmt->execute([$email]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {

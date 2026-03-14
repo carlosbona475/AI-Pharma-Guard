@@ -11,11 +11,8 @@ function sendJson($data, $code = 200) {
     exit;
 }
 
-try {
-    require_once __DIR__ . '/db.php';
-} catch (Throwable $e) {
-    sendJson(['success' => false, 'message' => 'Erro de conexão.'], 500);
-}
+require_once __DIR__ . '/config/database.php';
+$conn = getConnection();
 
 $raw = file_get_contents('php://input');
 $data = $raw ? json_decode($raw, true) : null;
@@ -32,7 +29,7 @@ if ($nome === '' || $email === '' || $senha === '') {
 $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
 
 try {
-    $stmt = $pdo->prepare('INSERT INTO farmacias (nome, email, senha, telefone) VALUES (?, ?, ?, ?)');
+    $stmt = $conn->prepare('INSERT INTO farmacias (nome, email, senha, telefone) VALUES (?, ?, ?, ?)');
     $stmt->execute([$nome, $email, $senhaHash, $telefone]);
     sendJson(['success' => true, 'message' => 'Farmácia cadastrada com sucesso']);
 } catch (PDOException $e) {
