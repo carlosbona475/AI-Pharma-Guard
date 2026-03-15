@@ -33,6 +33,177 @@ $conn = getConnection();
 // SaaS multi-farmácia: usar farmácia da sessão ou padrão 1 (evita NOT NULL no INSERT)
 $farmacia_id = isset($_SESSION['farmacia_id']) ? (int) $_SESSION['farmacia_id'] : 1;
 
+/**
+ * Normaliza o nível de risco vindo do banco (baixo/medio/alto ou LEVE/MODERADA/GRAVE)
+ * para um dos três valores: leve, moderada, grave.
+ */
+function normalizarNivelRisco($nivel) {
+    $n = mb_strtolower((string) $nivel, 'UTF-8');
+    if ($n === 'grave' || $n === 'alto') {
+        return 'grave';
+    }
+    if ($n === 'moderada' || $n === 'medio' || $n === 'médio') {
+        return 'moderada';
+    }
+    return 'leve';
+}
+
+/**
+ * Verifica interações entre os medicamentos informados.
+ * Retorna array de interações com dados dos medicamentos A e B.
+ *
+ * @param PDO   $conn
+ * @param int   $farmacia_id
+ * @param int[] $idsMedicamentos
+ * @return array
+ */
+function verificarInteracoes(PDO $conn, $farmacia_id, array $idsMedicamentos) {
+    $ids = array_values(array_unique(array_filter(array_map('intval', $idsMedicamentos))));
+    if (count($ids) < 2) {
+        return [];
+    }
+
+    $interacoes = [];
+    try {
+        $stmt = $conn->prepare("
+            SELECT i.id,
+                   i.farmacia_id,
+                   i.medicamento_a AS \"medicamentoA\",
+                   i.medicamento_b AS \"medicamentoB\",
+                   i.tipo_interacao,
+                   i.nivel_risco,
+                   i.recomendacao,
+                   ma.nome AS \"nomeA\",
+                   mb.nome AS \"nomeB\"
+            FROM interacoes i
+            JOIN medicamentos ma ON ma.id = i.medicamento_a
+            JOIN medicamentos mb ON mb.id = i.medicamento_b
+            WHERE i.farmacia_id = ?
+              AND ((i.medicamento_a = ? AND i.medicamento_b = ?) OR (i.medicamento_a = ? AND i.medicamento_b = ?))
+        ");
+        for ($i = 0; $i < count($ids); $i++) {
+            for ($j = $i + 1; $j < count($ids); $j++) {
+                $a = $ids[$i];
+                $b = $ids[$j];
+                $stmt->execute([$farmacia_id, $a, $b, $b, $a]);
+                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($rows as $row) {
+                    $row['nivel_risco_normalizado'] = normalizarNivelRisco($row['nivel_risco'] ?? '');
+                    $interacoes[] = $row;
+                }
+            }
+        }
+    } catch (PDOException $e) {
+        // No contexto de reuso em outras actions, propagamos como erro genérico
+        sendError('Erro ao verificar interações.', 500);
+    }
+    return $interacoes;
+}
+
+/**
+ * Verifica possíveis alergias cruzando lista de medicamentos do paciente
+ * com o texto livre de alergias do prontuário.
+ *
+ * @param array  $medicamentosPaciente Array de ['id' => int, 'nome' => string]
+ * @param string $alergiasTexto
+ * @return array Array de alertas
+ */
+function verificarAlergias(array $medicamentosPaciente, $alergiasTexto) {
+    $alergiasTexto = mb_strtolower((string) $alergiasTexto, 'UTF-8');
+    if ($alergiasTexto === '') {
+        return [];
+    }
+
+    // Quebra alergias em termos (vírgula, ponto e vírgula, barra)
+    $termos = preg_split('/[;,\/]| e /u', $alergiasTexto);
+    $termosLimpos = [];
+    foreach ($termos as $t) {
+        $t = trim($t);
+        if ($t !== '') {
+            $termosLimpos[] = $t;
+        }
+    }
+    if (!$termosLimpos) {
+        return [];
+    }
+
+    $alertas = [];
+    foreach ($medicamentosPaciente as $med) {
+        $nomeMed = mb_strtolower($med['nome'], 'UTF-8');
+        foreach ($termosLimpos as $termo) {
+            if ($termo === '') {
+                continue;
+            }
+            // Se o nome do medicamento aparece na alergia ou vice-versa
+            if (mb_strpos($alergiasTexto, $nomeMed, 0, 'UTF-8') !== false ||
+                mb_strpos($nomeMed, $termo, 0, 'UTF-8') !== false ||
+                mb_strpos($alergiasTexto, $termo, 0, 'UTF-8') !== false) {
+                $alertas[] = [
+                    'medicamento_id' => $med['id'],
+                    'medicamento' => $med['nome'],
+                    'termo_alergia' => $termo,
+                    'mensagem' => 'Possível alergia relacionada a "' . $termo . '" para o medicamento ' . $med['nome'],
+                ];
+                break;
+            }
+        }
+    }
+
+    return $alertas;
+}
+
+/**
+ * Calcula o score de risco clínico a partir das interações e alertas de alergia.
+ *
+ * @param array $interacoes
+ * @param array $alertasAlergia
+ * @return array ['score' => int, 'nivel' => string, 'recomendacao' => string]
+ */
+function calcularScoreRisco(array $interacoes, array $alertasAlergia) {
+    $score = 0;
+
+    foreach ($interacoes as $i) {
+        $nivel = isset($i['nivel_risco_normalizado'])
+            ? $i['nivel_risco_normalizado']
+            : normalizarNivelRisco($i['nivel_risco'] ?? '');
+        if ($nivel === 'grave') {
+            $score += 50;
+        } elseif ($nivel === 'moderada') {
+            $score += 20;
+        } else {
+            $score += 5;
+        }
+    }
+
+    // Cada alerta de alergia soma 40 pontos
+    $score += count($alertasAlergia) * 40;
+
+    // Limitar score máximo a algo razoável (ex.: 200)
+    if ($score > 200) {
+        $score = 200;
+    }
+
+    if ($score <= 20) {
+        $nivel = 'BAIXO';
+        $recomendacao = 'Manter acompanhamento e revisar periodicamente a prescrição.';
+    } elseif ($score <= 60) {
+        $nivel = 'MODERADO';
+        $recomendacao = 'Reavaliar a prescrição, monitorar o paciente e considerar ajustes.';
+    } elseif ($score <= 100) {
+        $nivel = 'ALTO';
+        $recomendacao = 'Revisar a prescrição com a equipe médica e considerar ajustes imediatos.';
+    } else {
+        $nivel = 'CRÍTICO';
+        $recomendacao = 'Interromper ou ajustar o tratamento imediatamente e acionar a equipe clínica.';
+    }
+
+    return [
+        'score' => $score,
+        'nivel' => $nivel,
+        'recomendacao' => $recomendacao,
+    ];
+}
+
 // ---- ESTATÍSTICAS (Dashboard) ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'estatisticas') {
     try {
@@ -182,32 +353,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         return is_array($m) ? (int) (isset($m['id']) ? $m['id'] : 0) : (int) $m;
     }, $medicamentos))));
 
-    $interacoes = [];
+    $interacoes = verificarInteracoes($conn, $farmacia_id, $ids);
+    sendJson($interacoes);
+}
+
+// ---- ANALISAR RISCO CLÍNICO DO PACIENTE ----
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'analisar_risco_paciente') {
+    $raw = file_get_contents('php://input');
+    $data = $raw ? json_decode($raw, true) : null;
+    $pacienteId = $data && isset($data['paciente_id']) ? (int) $data['paciente_id'] : 0;
+
+    if ($pacienteId <= 0) {
+        sendError('paciente_id inválido.', 400);
+    }
+
     try {
-        $stmt = $conn->prepare("
-            SELECT i.id, i.farmacia_id, i.medicamento_a AS \"medicamentoA\", i.medicamento_b AS \"medicamentoB\",
-                   i.tipo_interacao, i.nivel_risco, i.recomendacao,
-                   ma.nome AS \"nomeA\", mb.nome AS \"nomeB\"
-            FROM interacoes i
-            JOIN medicamentos ma ON ma.id = i.medicamento_a
-            JOIN medicamentos mb ON mb.id = i.medicamento_b
-            WHERE i.farmacia_id = ? AND ((i.medicamento_a = ? AND i.medicamento_b = ?) OR (i.medicamento_a = ? AND i.medicamento_b = ?))
-        ");
-        for ($i = 0; $i < count($ids); $i++) {
-            for ($j = $i + 1; $j < count($ids); $j++) {
-                $a = $ids[$i];
-                $b = $ids[$j];
-                $stmt->execute([$farmacia_id, $a, $b, $b, $a]);
-                $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                foreach ($rows as $row) {
-                    $interacoes[] = $row;
-                }
-            }
+        $stmt = $conn->prepare("SELECT * FROM pacientes WHERE farmacia_id = ? AND id = ? LIMIT 1");
+        $stmt->execute([$farmacia_id, $pacienteId]);
+        $paciente = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$paciente) {
+            sendError('Paciente não encontrado.', 404);
         }
     } catch (PDOException $e) {
-        sendError('Erro ao verificar interações.', 500);
+        sendError('Erro ao buscar paciente.', 500);
     }
-    sendJson($interacoes);
+
+    // Montar lista de medicamentos do paciente a partir do texto livre
+    $medsTexto = (string) ($paciente['medicamentos_usados'] ?? '');
+    $medicamentosPaciente = [];
+    $idsMedicamentos = [];
+
+    if (trim($medsTexto) !== '') {
+        $termosMeds = preg_split('/[;,\/]/u', $medsTexto);
+        foreach ($termosMeds as $termo) {
+            $termo = trim($termo);
+            if ($termo === '') {
+                continue;
+            }
+            try {
+                $stmtMed = $conn->prepare("SELECT id, nome FROM medicamentos WHERE farmacia_id = ? AND LOWER(nome) LIKE LOWER(?) LIMIT 1");
+                $stmtMed->execute([$farmacia_id, '%' . $termo . '%']);
+                $med = $stmtMed->fetch(PDO::FETCH_ASSOC);
+                if ($med && !in_array((int) $med['id'], $idsMedicamentos, true)) {
+                    $idsMedicamentos[] = (int) $med['id'];
+                    $medicamentosPaciente[] = [
+                        'id' => (int) $med['id'],
+                        'nome' => $med['nome'],
+                        'termo_origem' => $termo,
+                    ];
+                }
+            } catch (PDOException $e) {
+                // Em caso de erro na busca de um medicamento isolado, apenas seguimos
+                continue;
+            }
+        }
+    }
+
+    $interacoes = [];
+    if (count($idsMedicamentos) >= 2) {
+        $interacoes = verificarInteracoes($conn, $farmacia_id, $idsMedicamentos);
+    }
+
+    $alertasAlergia = verificarAlergias($medicamentosPaciente, $paciente['alergias'] ?? '');
+    $scoreInfo = calcularScoreRisco($interacoes, $alertasAlergia);
+
+    $resultado = [
+        'score' => $scoreInfo['score'],
+        'nivel' => $scoreInfo['nivel'],
+        'interacoes' => $interacoes,
+        'alertas' => $alertasAlergia,
+        'recomendacao' => $scoreInfo['recomendacao'],
+        'paciente' => [
+            'id' => (int) $paciente['id'],
+            'nome' => $paciente['nome'],
+            'doencas' => $paciente['doencas'],
+            'medicamentos_usados' => $paciente['medicamentos_usados'],
+            'alergias' => $paciente['alergias'],
+            'historico_clinico' => $paciente['historico_clinico'],
+        ],
+    ];
+
+    sendJson($resultado);
 }
 
 sendError('Ação não reconhecida', 400);

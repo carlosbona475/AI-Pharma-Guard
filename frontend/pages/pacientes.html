@@ -83,10 +83,11 @@
                             <th>Sexo</th>
                             <th>Doencas</th>
                             <th>Medicamentos em uso</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Carregando...</td></tr>
+                        <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Carregando...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -101,15 +102,24 @@
             function loadPacientes() {
                 api.listarPacientes().then(function(pacientes) {
                     if (pacientes.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhum paciente cadastrado.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Nenhum paciente cadastrado.</td></tr>';
                         return;
                     }
                     tbody.innerHTML = pacientes.map(function(p) {
-                        return '<tr><td>' + p.id + '</td><td>' + escapeHtml(p.nome) + '</td><td>' + p.idade + '</td><td>' + (p.sexo || '-') + '</td><td>' + escapeHtml(p.doencas || '-') + '</td><td>' + escapeHtml(p.medicamentos_usados || '-') + '</td></tr>';
+                        return '' +
+                            '<tr>' +
+                            '<td>' + p.id + '</td>' +
+                            '<td>' + escapeHtml(p.nome) + '</td>' +
+                            '<td>' + p.idade + '</td>' +
+                            '<td>' + (p.sexo || '-') + '</td>' +
+                            '<td>' + escapeHtml(p.doencas || '-') + '</td>' +
+                            '<td>' + escapeHtml(p.medicamentos_usados || '-') + '</td>' +
+                            '<td><button type="button" class="btn btn-secondary btn-sm" onclick="analisarRiscoPaciente(' + p.id + ', \'' + (p.nome ? escapeHtml(p.nome).replace(/'/g, "\\'") : '') + '\')">Analisar risco clínico</button></td>' +
+                            '</tr>';
                     }).join('');
                 }).catch(function(err) {
                     console.error('[Pacientes] Erro ao listar:', err);
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o console.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o console.</td></tr>';
                 });
             }
 
@@ -137,6 +147,29 @@
                     alert('Erro: ' + (err.message || 'Não foi possível cadastrar.'));
                 });
             });
+
+            // Exemplo de chamada fetch para o motor clínico (analisar_risco_paciente)
+            window.analisarRiscoPaciente = function(id, nome) {
+                fetch('../../backend/api.php?action=analisar_risco_paciente', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ paciente_id: id })
+                }).then(function(res) {
+                    return res.json();
+                }).then(function(data) {
+                    console.log('[Risco clínico] Resultado para paciente', id, data);
+                    var titulo = nome || ('Paciente #' + id);
+                    alert(
+                        'Risco clínico de ' + titulo + ':\n' +
+                        '- Nível: ' + data.nivel + '\n' +
+                        '- Score: ' + data.score + '\n' +
+                        '- Recomendações: ' + data.recomendacao
+                    );
+                }).catch(function(err) {
+                    console.error('[Risco clínico] Erro na análise:', err);
+                    alert('Erro ao analisar risco clínico. Veja detalhes no console.');
+                });
+            };
 
             loadPacientes();
         })();
