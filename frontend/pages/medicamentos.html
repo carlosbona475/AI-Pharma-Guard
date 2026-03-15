@@ -75,30 +75,65 @@
                     </tbody>
                 </table>
             </div>
+            <div id="medicamentos-error" class="medicamentos-error" style="display: none; margin-top: 12px; padding: 12px; background: var(--risk-severe); color: #fff; border-radius: 6px;">
+                <span id="medicamentos-error-msg"></span>
+                <button type="button" id="btn-retry-medicamentos" class="btn btn-secondary" style="margin-left: 12px;">Tentar novamente</button>
+            </div>
         </div>
     </main>
-    <script src="../js/app.js?v=2"></script>
+    <script src="../js/app.js?v=4"></script>
     <script>
         (function() {
             var form = document.getElementById('form-medicamento');
             var tbody = document.querySelector('#tabela-medicamentos tbody');
+            var errorBlock = document.getElementById('medicamentos-error');
+            var errorMsg = document.getElementById('medicamentos-error-msg');
+            var btnRetry = document.getElementById('btn-retry-medicamentos');
+
+            function setLoading(loading) {
+                errorBlock.style.display = 'none';
+                if (loading) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Carregando...</td></tr>';
+                }
+            }
+
+            function setError(msg) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">—</td></tr>';
+                errorMsg.textContent = msg || 'Erro ao carregar medicamentos.';
+                errorBlock.style.display = 'block';
+                console.error('[Medicamentos]', msg);
+            }
+
+            function renderRows(medicamentos) {
+                setLoading(false);
+                errorBlock.style.display = 'none';
+                if (!Array.isArray(medicamentos)) {
+                    setError('Resposta inválida da API (não é lista).');
+                    return;
+                }
+                if (medicamentos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhum medicamento cadastrado.</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = medicamentos.map(function(m) {
+                    var ind = (m.indicacao || '').slice(0, 40);
+                    var cont = (m.contraindicacoes || '').slice(0, 40);
+                    return '<tr><td>' + m.id + '</td><td>' + escapeHtml(m.nome) + '</td><td>' + escapeHtml(m.classe_farmacologica || '-') + '</td><td>' + escapeHtml(m.dose || '-') + '</td><td>' + escapeHtml(ind) + '</td><td>' + escapeHtml(cont) + '</td></tr>';
+                }).join('');
+            }
 
             function loadMedicamentos() {
-                api.listarMedicamentos().then(function(medicamentos) {
-                    if (medicamentos.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhum medicamento cadastrado.</td></tr>';
-                        return;
-                    }
-                    tbody.innerHTML = medicamentos.map(function(m) {
-                        var ind = (m.indicacao || '').slice(0, 40);
-                        var cont = (m.contraindicacoes || '').slice(0, 40);
-                        return '<tr><td>' + m.id + '</td><td>' + escapeHtml(m.nome) + '</td><td>' + escapeHtml(m.classe_farmacologica || '-') + '</td><td>' + escapeHtml(m.dose || '-') + '</td><td>' + escapeHtml(ind) + '</td><td>' + escapeHtml(cont) + '</td></tr>';
-                    }).join('');
-                }).catch(function(err) {
-                    console.error('[Medicamentos] Erro ao listar:', err);
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o console.</td></tr>';
-                });
+                setLoading(true);
+                api.listarMedicamentos()
+                    .then(function(data) {
+                        renderRows(Array.isArray(data) ? data : (data && data.data ? data.data : null));
+                    })
+                    .catch(function(err) {
+                        setError(err && err.message ? err.message : 'Falha na rede ou no servidor. Verifique o console.');
+                    });
             }
+
+            if (btnRetry) btnRetry.addEventListener('click', loadMedicamentos);
 
             form.addEventListener('submit', function(e) {
                 e.preventDefault();

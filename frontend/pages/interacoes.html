@@ -96,7 +96,7 @@
             </div>
         </div>
     </main>
-    <script src="../js/app.js?v=2"></script>
+    <script src="../js/app.js?v=4"></script>
     <script>
         (function() {
             var container = document.getElementById('lista-medicamentos-check');
@@ -159,7 +159,7 @@
 
             api.listarMedicamentos().then(renderCheckboxes).catch(function(err) {
                 console.error('[Interações] Erro ao carregar medicamentos (checkboxes):', err);
-                container.innerHTML = '<span style="color: var(--text-muted);">Erro ao carregar medicamentos. Verifique o console.</span>';
+                container.innerHTML = '<span style="color: var(--risk-severe);">Erro ao carregar medicamentos. Verifique a conexão com o Supabase e o console (F12).</span>';
             });
 
             // Cadastro de interação: popular selects e enviar formulário
@@ -190,7 +190,7 @@
                     }).join('');
                 }).catch(function(err) {
                     console.error('[Interações] Erro ao carregar tabela de interações:', err);
-                    tbodyInteracoes.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o console.</td></tr>';
+                    tbodyInteracoes.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--risk-severe);">Erro ao carregar interações. Verifique a conexão com o Supabase e o console (F12).</td></tr>';
                 });
             }
 

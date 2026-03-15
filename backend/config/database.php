@@ -1,17 +1,17 @@
 <?php
 /**
  * Conexão PDO PostgreSQL (Supabase).
- * Variáveis de ambiente: DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASS, DB_SSLMODE.
- * Compatível com Render.
+ * Variáveis de ambiente: SUPABASE_HOST, SUPABASE_DB, SUPABASE_USER, SUPABASE_PASS, SUPABASE_PORT, SUPABASE_SSLMODE.
+ * Fallback para DB_* se SUPABASE_* não estiver definido (compatibilidade).
  */
 
 function getConnection() {
-    $host = getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? '');
-    $port = getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? '6543');
-    $dbname = getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? 'postgres');
-    $user = getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? '');
-    $pass = getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? '');
-    $sslmode = getenv('DB_SSLMODE') ?: ($_ENV['DB_SSLMODE'] ?? 'require');
+    $host = getenv('SUPABASE_HOST') ?: ($_ENV['SUPABASE_HOST'] ?? getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? ''));
+    $dbname = getenv('SUPABASE_DB') ?: ($_ENV['SUPABASE_DB'] ?? getenv('DB_NAME') ?: ($_ENV['DB_NAME'] ?? 'postgres'));
+    $user = getenv('SUPABASE_USER') ?: ($_ENV['SUPABASE_USER'] ?? getenv('DB_USER') ?: ($_ENV['DB_USER'] ?? ''));
+    $pass = getenv('SUPABASE_PASS') ?: ($_ENV['SUPABASE_PASS'] ?? getenv('DB_PASS') ?: ($_ENV['DB_PASS'] ?? ''));
+    $port = getenv('SUPABASE_PORT') ?: ($_ENV['SUPABASE_PORT'] ?? getenv('DB_PORT') ?: ($_ENV['DB_PORT'] ?? '5432'));
+    $sslmode = getenv('SUPABASE_SSLMODE') ?: ($_ENV['SUPABASE_SSLMODE'] ?? getenv('DB_SSLMODE') ?: ($_ENV['DB_SSLMODE'] ?? 'require'));
 
     $dsn = "pgsql:host=$host;port=$port;dbname=$dbname;sslmode=$sslmode";
 

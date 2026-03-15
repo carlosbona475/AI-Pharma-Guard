@@ -1,13 +1,24 @@
 /**
  * AI Pharma Guard - API e utilitários
- * A API sempre deve retornar JSON. Se o servidor retornar HTML (erro 404, PHP, etc.),
- * o código trata o texto e exibe mensagem clara em vez de "Unexpected token '<'".
+ * Conexão com Supabase via backend PHP (backend/api/*.php).
  *
- * Base URL: se o frontend for servido na raiz do projeto, use '../../backend'.
- * Se servir só o frontend em outro domínio, defina window.API_BASE antes de carregar (ex: '/backend').
+ * API_BASE: defina window.API_BASE antes de carregar para fixar.
+ * Produção (Render): https://SEU-BACKEND.onrender.com/backend
+ * Local: origin + '/backend' ou '../../backend'
  */
 (function(global) {
-    var API_BASE = typeof global.API_BASE !== 'undefined' ? global.API_BASE : '../../backend';
+    function resolveApiBase() {
+        if (typeof global.API_BASE !== 'undefined' && global.API_BASE !== '') return global.API_BASE.replace(/\/$/, '');
+        try {
+            var origin = global.location && global.location.origin;
+            var pathname = (global.location && global.location.pathname) || '';
+            if (origin && pathname.indexOf('/frontend/') !== -1) return origin + '/backend';
+            if (origin) return origin + '/backend';
+        } catch (e) {}
+        return '../../backend';
+    }
+    var API_BASE = resolveApiBase();
+    var API = API_BASE + '/api';
 
     function parseResponseAsJson(res, text) {
         var trimmed = (text || '').trim();
@@ -38,9 +49,7 @@
     function request(method, action, body) {
         var url = API_BASE + '/api.php?action=' + encodeURIComponent(action);
         var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
-        if (body && (method === 'POST' || method === 'PUT')) {
-            opts.body = JSON.stringify(body);
-        }
+        if (body && (method === 'POST' || method === 'PUT')) opts.body = JSON.stringify(body);
         return fetch(url, opts)
             .then(function(res) {
                 return res.text().then(function(text) {
@@ -69,7 +78,20 @@
 
     var api = {
         getEstatisticas: function() {
-            return request('GET', 'estatisticas');
+            return fetch(API + '/dashboard.php').then(function(res) {
+                return res.text().then(function(text) {
+                    var data = parseResponseAsJson(res, text);
+                    if (!res.ok) throw new Error(data.error || data.message || 'Erro ao carregar dashboard');
+                    return {
+                        pacientes: data.total_pacientes,
+                        medicamentos: data.total_medicamentos,
+                        interacoes_cadastradas: data.total_interacoes
+                    };
+                });
+            }).catch(function(err) {
+                console.error('[API] getEstatisticas:', err);
+                throw err;
+            });
         },
         listarPacientes: function() {
             return request('GET', 'listar_pacientes');
@@ -78,7 +100,16 @@
             return request('POST', 'cadastrar_paciente', data);
         },
         listarMedicamentos: function() {
-            return request('GET', 'listar_medicamentos');
+            return fetch(API + '/medicamentos.php').then(function(res) {
+                return res.text().then(function(text) {
+                    var data = parseResponseAsJson(res, text);
+                    if (!res.ok) throw new Error(data.error || data.message || 'Erro ao carregar medicamentos');
+                    return Array.isArray(data) ? data : [];
+                });
+            }).catch(function(err) {
+                console.error('[API] listarMedicamentos:', err);
+                throw err;
+            });
         },
         cadastrarMedicamento: function(data) {
             return request('POST', 'cadastrar_medicamento', data);
@@ -87,10 +118,22 @@
             return request('POST', 'verificar_interacoes', { medicamentos: medicamentos });
         },
         listarInteracoes: function() {
-            return request('GET', 'listar_interacoes');
+            return fetch(API + '/interacoes.php').then(function(res) {
+                return res.text().then(function(text) {
+                    var data = parseResponseAsJson(res, text);
+                    if (!res.ok) throw new Error(data.error || data.message || 'Erro ao carregar interações');
+                    return Array.isArray(data) ? data : [];
+                });
+            }).catch(function(err) {
+                console.error('[API] listarInteracoes:', err);
+                throw err;
+            });
         },
         cadastrarInteracao: function(data) {
             return request('POST', 'cadastrar_interacao', data);
+        },
+        analisarRiscoPaciente: function(pacienteId) {
+            return request('POST', 'analisar_risco_paciente', { paciente_id: pacienteId });
         }
     };
 

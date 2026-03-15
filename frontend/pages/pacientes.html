@@ -101,6 +101,10 @@
 
             function loadPacientes() {
                 api.listarPacientes().then(function(pacientes) {
+                    if (!Array.isArray(pacientes)) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--risk-severe);">Resposta inválida da API.</td></tr>';
+                        return;
+                    }
                     if (pacientes.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Nenhum paciente cadastrado.</td></tr>';
                         return;
@@ -148,26 +152,19 @@
                 });
             });
 
-            // Exemplo de chamada fetch para o motor clínico (analisar_risco_paciente)
             window.analisarRiscoPaciente = function(id, nome) {
-                fetch('../../backend/api.php?action=analisar_risco_paciente', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ paciente_id: id })
-                }).then(function(res) {
-                    return res.json();
-                }).then(function(data) {
+                api.analisarRiscoPaciente(id).then(function(data) {
                     console.log('[Risco clínico] Resultado para paciente', id, data);
                     var titulo = nome || ('Paciente #' + id);
                     alert(
                         'Risco clínico de ' + titulo + ':\n' +
-                        '- Nível: ' + data.nivel + '\n' +
-                        '- Score: ' + data.score + '\n' +
-                        '- Recomendações: ' + data.recomendacao
+                        '- Nível: ' + (data.nivel || '-') + '\n' +
+                        '- Score: ' + (data.score ?? '-') + '\n' +
+                        '- Recomendações: ' + (data.recomendacao || '-')
                     );
                 }).catch(function(err) {
                     console.error('[Risco clínico] Erro na análise:', err);
-                    alert('Erro ao analisar risco clínico. Veja detalhes no console.');
+                    alert('Erro ao analisar risco clínico: ' + (err && err.message ? err.message : 'Verifique o console.'));
                 });
             };
 

@@ -53,19 +53,28 @@
             </div>
         </div>
     </main>
-    <script src="../js/app.js?v=2"></script>
+    <script src="../js/app.js?v=4"></script>
     <script>
         (function() {
-            api.getEstatisticas().then(function(data) {
-                document.getElementById('stat-pacientes').textContent = data.pacientes;
-                document.getElementById('stat-medicamentos').textContent = data.medicamentos;
-                document.getElementById('stat-interacoes').textContent = data.interacoes_cadastradas;
-            }).catch(function(err) {
-                console.error('[Dashboard] Erro ao carregar estatísticas:', err);
-                document.getElementById('stat-pacientes').textContent = '0';
-                document.getElementById('stat-medicamentos').textContent = '0';
-                document.getElementById('stat-interacoes').textContent = '0';
-            });
+            var statP = document.getElementById('stat-pacientes');
+            var statM = document.getElementById('stat-medicamentos');
+            var statI = document.getElementById('stat-interacoes');
+            try {
+                api.getEstatisticas().then(function(data) {
+                    statP.textContent = data.pacientes != null ? data.pacientes : '0';
+                    statM.textContent = data.medicamentos != null ? data.medicamentos : '0';
+                    statI.textContent = data.interacoes_cadastradas != null ? data.interacoes_cadastradas : '0';
+                }).catch(function(err) {
+                    console.error('[Dashboard] Erro ao carregar estatísticas:', err);
+                    statP.textContent = statM.textContent = statI.textContent = '—';
+                    if (document.querySelector('.page-subtitle')) {
+                        document.querySelector('.page-subtitle').innerHTML = '<span style="color: var(--risk-severe);">Erro ao conectar ao banco. Verifique a API e as variáveis de ambiente (Supabase).</span>';
+                    }
+                });
+            } catch (e) {
+                console.error('[Dashboard] Erro:', e);
+                statP.textContent = statM.textContent = statI.textContent = '—';
+            }
         })();
     </script>
 </body>
