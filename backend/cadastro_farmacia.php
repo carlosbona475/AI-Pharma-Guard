@@ -29,7 +29,7 @@ if ($nome === '' || $email === '' || $senha === '') {
 $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
 
 try {
-    $stmt = $conn->prepare('INSERT INTO farmacias (nome, email, senha, telefone) VALUES (?, ?, ?, ?)');
+    $stmt = $conn->prepare('INSERT INTO farmacias (nome, email, senha, telefone, ativo) VALUES (?, ?, ?, ?, false)');
     $stmt->execute([$nome, $email, $senhaHash, $telefone]);
     sendJson(['success' => true, 'message' => 'Farmácia cadastrada com sucesso']);
 } catch (PDOException $e) {

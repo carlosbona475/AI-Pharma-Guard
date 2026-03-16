@@ -57,7 +57,7 @@
                 msgEl.style.color = data.success ? 'var(--risk-none)' : 'var(--risk-severe)';
                 msgEl.textContent = data.message || (data.success ? 'Cadastro realizado.' : 'Erro ao cadastrar.');
                 if (data.success) {
-                    setTimeout(function() { window.location.href = 'login.html'; }, 1500);
+                    msgEl.textContent = 'Cadastro realizado com sucesso! Você receberá um contato para ativação da sua conta.';
                 }
             })
             .catch(function(err) {

@@ -26,7 +26,7 @@ if ($email === '' || $senha === '') {
 }
 
 try {
-    $stmt = $conn->prepare('SELECT id, senha FROM farmacias WHERE email = ?');
+    $stmt = $conn->prepare('SELECT id, senha, ativo FROM farmacias WHERE email = ?');
     $stmt->execute([$email]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
@@ -39,6 +39,13 @@ if (!$row) {
 
 if (!password_verify($senha, $row['senha'])) {
     sendJson(['success' => false, 'message' => 'Login inválido.'], 401);
+}
+
+if (empty($row['ativo'])) {
+    sendJson([
+        'success' => false,
+        'message' => 'Sua conta ainda não foi aprovada. Aguarde o contato do administrador.'
+    ], 403);
 }
 
 $_SESSION['farmacia_id'] = (int) $row['id'];
