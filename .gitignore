@@ -1,1 +1,37 @@
+# AI Pharma Guard - arquivos ignorados pelo Git
+
+# Credenciais e configuração sensível (nunca commitar .env)
+.env
+config.php
+*.env.local
+*.env.*.local
+
+# Dependências
+vendor/
+node_modules/
+
+# Sistema operacional
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# PHP
+*.log
+*.tmp
+*.temp
+*.cache
+/logs/
+/tmp/
+/temp/
+*.php~
+.phpunit.result.cache
+
+# IDE (opcional)
+.idea/
+.vscode/
+*.sublime-*
+
+# Build / artefatos
+/dist/
+/build/
 *.exe

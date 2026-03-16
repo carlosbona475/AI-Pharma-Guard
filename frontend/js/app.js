@@ -93,8 +93,26 @@
                 throw err;
             });
         },
-        listarPacientes: function() {
+        listarPacientes: function(page, limit) {
+            if (typeof page === 'number' && page >= 1 && typeof limit === 'number' && limit >= 1) {
+                var url = API_BASE + '/api.php?action=listar_pacientes&page=' + encodeURIComponent(page) + '&limit=' + encodeURIComponent(limit);
+                return fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
+                    .then(function(res) {
+                        return res.text().then(function(text) {
+                            var data = parseResponseAsJson(res, text);
+                            if (!res.ok) throw new Error(data.error || 'Erro ao listar pacientes');
+                            return data;
+                        });
+                    })
+                    .catch(function(err) { console.error('[API] listarPacientes:', err); throw err; });
+            }
             return request('GET', 'listar_pacientes');
+        },
+        verificarAlergia: function(pacienteId, medicamentoNome) {
+            return request('POST', 'verificar_alergia', {
+                paciente_id: pacienteId,
+                medicamento_nome: medicamentoNome
+            });
         },
         cadastrarPaciente: function(data) {
             return request('POST', 'cadastrar_paciente', data);
@@ -134,6 +152,9 @@
         },
         analisarRiscoPaciente: function(pacienteId) {
             return request('POST', 'analisar_risco_paciente', { paciente_id: pacienteId });
+        },
+        verificarInteracoesPaciente: function(opts) {
+            return request('POST', 'verificar_interacoes_paciente', opts);
         }
     };
 

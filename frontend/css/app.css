@@ -451,6 +451,133 @@ table.data-table td {
 .mt-2 { margin-top: 16px; }
 .mb-2 { margin-bottom: 16px; }
 
+.hidden { display: none !important; }
+
+/* ---- Verificação de alergia ---- */
+.alergia-check-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.alergia-check-row label { margin: 0; min-width: 120px; }
+.alergia-check-row .input-select,
+.alergia-check-row .input-text {
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+}
+
+.alerta-banner {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+.alerta-banner--vermelho {
+    background: #fef2f2;
+    border: 1px solid var(--risk-severe);
+    color: #b91c1c;
+}
+
+.alerta-banner--verde {
+    background: #f0fdf4;
+    border: 1px solid var(--risk-none);
+    color: #15803d;
+}
+
+.alerta-banner--amarelo {
+    background: #fefce8;
+    border: 1px solid var(--risk-moderate);
+    color: #a16207;
+}
+
+/* ---- Verificação de interações (pacientes) ---- */
+.medicamentos-verificar-row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.medicamentos-verificar-row input {
+    flex: 1;
+    min-width: 200px;
+}
+
+.banner-interacoes {
+    margin-top: 10px;
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+}
+
+.banner-interacoes.hidden {
+    display: none;
+}
+
+.banner-interacoes--vermelho {
+    background: #fef2f2;
+    border: 1px solid var(--risk-severe);
+    color: #b91c1c;
+}
+
+.banner-interacoes--amarelo {
+    background: #fefce8;
+    border: 1px solid var(--risk-moderate);
+    color: #a16207;
+}
+
+.banner-interacoes--verde {
+    background: #f0fdf4;
+    border: 1px solid var(--risk-none);
+    color: #15803d;
+}
+
+.banner-interacoes-item {
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.banner-interacoes-item:last-child {
+    border-bottom: none;
+}
+
+.banner-interacoes-item--grave { color: #b91c1c; }
+.banner-interacoes-item--moderada { color: #a16207; }
+.banner-interacoes-item--baixo { color: #15803d; }
+
+.banner-interacoes-rec {
+    font-size: 0.9rem;
+    opacity: 0.95;
+    display: block;
+    margin-top: 4px;
+}
+
+/* ---- Paginação ---- */
+.paginacao-wrap {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--card-border);
+}
+
+.paginacao-info {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.paginacao-wrap .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
     .app-sidebar {
         width: 72px;

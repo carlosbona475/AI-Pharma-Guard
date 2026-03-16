@@ -1,9 +1,11 @@
 <?php
 /**
  * Conexão PDO PostgreSQL (Supabase).
- * Variáveis de ambiente: SUPABASE_HOST, SUPABASE_DB, SUPABASE_USER, SUPABASE_PASS, SUPABASE_PORT, SUPABASE_SSLMODE.
+ * Carrega .env via config.php; usa getenv()/$_ENV para credenciais.
+ * Variáveis: SUPABASE_HOST, SUPABASE_DB, SUPABASE_USER, SUPABASE_PASS, SUPABASE_PORT, SUPABASE_SSLMODE.
  * Fallback para DB_* se SUPABASE_* não estiver definido (compatibilidade).
  */
+require_once __DIR__ . '/../config.php';
 
 function getConnection() {
     $host = getenv('SUPABASE_HOST') ?: ($_ENV['SUPABASE_HOST'] ?? getenv('DB_HOST') ?: ($_ENV['DB_HOST'] ?? ''));

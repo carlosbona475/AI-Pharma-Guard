@@ -51,11 +51,26 @@
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
                     <label for="medicamentos">Medicamentos em uso</label>
-                    <input type="text" id="medicamentos" name="medicamentos" placeholder="Medicamentos em uso">
+                    <div class="medicamentos-verificar-row">
+                        <input type="text" id="medicamentos" name="medicamentos" placeholder="Ex: Varfarina, AAS, Omeprazol (separados por vírgula ou ponto e vírgula)">
+                        <button type="button" id="btn-verificar-interacoes" class="btn btn-secondary">Verificar Interações</button>
+                    </div>
+                    <div id="banner-interacoes" class="banner-interacoes hidden" role="alert" aria-live="polite"></div>
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
                     <label for="alergias">Alergias</label>
                     <textarea id="alergias" name="alergias" rows="2" placeholder="Alergias conhecidas (medicamentos, substâncias)"></textarea>
+                </div>
+                <div class="form-group" style="grid-column: 1 / -1;">
+                    <div class="alergia-check-row">
+                        <label>Verificar alergia (paciente existente)</label>
+                        <select id="alergia-paciente" class="input-select">
+                            <option value="">Selecione o paciente</option>
+                        </select>
+                        <input type="text" id="alergia-medicamento" placeholder="Nome do medicamento (ex: Dipirona)" class="input-text">
+                        <button type="button" id="btn-verificar-alergia" class="btn btn-secondary">Verificar Alergias</button>
+                    </div>
+                    <div id="alerta-alergia-banner" class="alerta-banner hidden" role="alert"></div>
                 </div>
                 <div class="form-group" style="grid-column: 1 / -1;">
                     <label for="historico_clinico">Histórico clínico</label>
@@ -91,41 +106,154 @@
                     </tbody>
                 </table>
             </div>
+            <div class="paginacao-wrap" id="paginacao-wrap" style="display: none;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-pag-prev">Anterior</button>
+                <span class="paginacao-info" id="paginacao-info">Página 1 de 1</span>
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-pag-next">Próxima</button>
+            </div>
         </div>
     </main>
-    <script src="../js/app.js?v=2"></script>
+    <script src="../js/app.js?v=3"></script>
     <script>
         (function() {
             var form = document.getElementById('form-paciente');
             var tbody = document.querySelector('#tabela-pacientes tbody');
+            var pagWrap = document.getElementById('paginacao-wrap');
+            var pagInfo = document.getElementById('paginacao-info');
+            var btnPrev = document.getElementById('btn-pag-prev');
+            var btnNext = document.getElementById('btn-pag-next');
+            var limit = 20;
+            var currentPage = 1;
+            var totalRecords = 0;
+            var currentData = [];
 
-            function loadPacientes() {
-                api.listarPacientes().then(function(pacientes) {
+            function loadPacientes(page) {
+                page = page || 1;
+                currentPage = page;
+                api.listarPacientes(page, limit).then(function(res) {
+                    var pacientes = res && res.data ? res.data : [];
+                    var total = res && typeof res.total === 'number' ? res.total : 0;
+                    var pageNum = res && typeof res.page === 'number' ? res.page : 1;
+                    totalRecords = total;
+                    currentData = pacientes;
+
                     if (!Array.isArray(pacientes)) {
                         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--risk-severe);">Resposta inválida da API.</td></tr>';
                         return;
                     }
                     if (pacientes.length === 0) {
                         tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Nenhum paciente cadastrado.</td></tr>';
-                        return;
+                    } else {
+                        tbody.innerHTML = pacientes.map(function(p) {
+                            return '' +
+                                '<tr>' +
+                                '<td>' + p.id + '</td>' +
+                                '<td>' + escapeHtml(p.nome) + '</td>' +
+                                '<td>' + p.idade + '</td>' +
+                                '<td>' + (p.sexo || '-') + '</td>' +
+                                '<td>' + escapeHtml(p.doencas || '-') + '</td>' +
+                                '<td>' + escapeHtml(p.medicamentos_usados || '-') + '</td>' +
+                                '<td><button type="button" class="btn btn-secondary btn-sm" onclick="analisarRiscoPaciente(' + p.id + ', \'' + (p.nome ? String(p.nome).replace(/'/g, "\\'") : '') + '\')">Analisar risco clínico</button></td>' +
+                                '</tr>';
+                        }).join('');
                     }
-                    tbody.innerHTML = pacientes.map(function(p) {
-                        return '' +
-                            '<tr>' +
-                            '<td>' + p.id + '</td>' +
-                            '<td>' + escapeHtml(p.nome) + '</td>' +
-                            '<td>' + p.idade + '</td>' +
-                            '<td>' + (p.sexo || '-') + '</td>' +
-                            '<td>' + escapeHtml(p.doencas || '-') + '</td>' +
-                            '<td>' + escapeHtml(p.medicamentos_usados || '-') + '</td>' +
-                            '<td><button type="button" class="btn btn-secondary btn-sm" onclick="analisarRiscoPaciente(' + p.id + ', \'' + (p.nome ? escapeHtml(p.nome).replace(/'/g, "\\'") : '') + '\')">Analisar risco clínico</button></td>' +
-                            '</tr>';
-                    }).join('');
+
+                    var totalPages = limit > 0 ? Math.max(1, Math.ceil(total / limit)) : 1;
+                    pagInfo.textContent = 'Página ' + pageNum + ' de ' + totalPages + ' (' + total + ' registros)';
+                    pagWrap.style.display = total > limit ? 'flex' : 'none';
+                    btnPrev.disabled = pageNum <= 1;
+                    btnNext.disabled = pageNum >= totalPages;
+
+                    var sel = document.getElementById('alergia-paciente');
+                    sel.innerHTML = '<option value="">Selecione o paciente</option>' +
+                        pacientes.map(function(p) {
+                            return '<option value="' + p.id + '">' + escapeHtml(p.nome) + ' (ID ' + p.id + ')</option>';
+                        }).join('');
                 }).catch(function(err) {
                     console.error('[Pacientes] Erro ao listar:', err);
                     tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o console.</td></tr>';
                 });
             }
+
+            if (btnPrev) btnPrev.addEventListener('click', function() {
+                if (currentPage > 1) loadPacientes(currentPage - 1);
+            });
+            if (btnNext) btnNext.addEventListener('click', function() {
+                if (limit > 0 && totalRecords > currentPage * limit) loadPacientes(currentPage + 1);
+            });
+
+            var medicamentosInput = document.getElementById('medicamentos');
+            var btnVerificarInteracoes = document.getElementById('btn-verificar-interacoes');
+            var bannerInteracoes = document.getElementById('banner-interacoes');
+
+            function renderBannerInteracoes(alertas) {
+                bannerInteracoes.classList.remove('hidden');
+                if (!alertas || alertas.length === 0) {
+                    bannerInteracoes.className = 'banner-interacoes banner-interacoes--verde';
+                    bannerInteracoes.innerHTML = '&#9989; Nenhuma interação medicamentosa encontrada para a lista informada.';
+                    return;
+                }
+                var ordem = { grave: 0, moderada: 1, baixo: 2 };
+                alertas = alertas.slice().sort(function(a, b) {
+                    return (ordem[a.nivel_risco] !== undefined ? ordem[a.nivel_risco] : 3) - (ordem[b.nivel_risco] !== undefined ? ordem[b.nivel_risco] : 3);
+                });
+                var temGrave = alertas.some(function(a) { return (a.nivel_risco || '').toLowerCase() === 'grave'; });
+                var temModerada = alertas.some(function(a) { return (a.nivel_risco || '').toLowerCase() === 'moderada'; });
+                bannerInteracoes.className = 'banner-interacoes ' + (temGrave ? 'banner-interacoes--vermelho' : temModerada ? 'banner-interacoes--amarelo' : 'banner-interacoes--verde');
+                bannerInteracoes.innerHTML = alertas.map(function(a) {
+                    var nivel = (a.nivel_risco || '').toLowerCase();
+                    var icon = nivel === 'grave' ? '&#9888;' : nivel === 'moderada' ? '&#9889;' : '&#9989;';
+                    var par = escapeHtml(a.medicamentoA || '') + ' + ' + escapeHtml(a.medicamentoB || '');
+                    var rec = escapeHtml(a.recomendacao || '');
+                    return '<div class="banner-interacoes-item banner-interacoes-item--' + (nivel === 'grave' ? 'grave' : nivel === 'moderada' ? 'moderada' : 'baixo') + '">' +
+                        '<strong>' + icon + ' ' + par + '</strong><br><span class="banner-interacoes-rec">' + rec + '</span></div>';
+                }).join('');
+            }
+
+            function verificarInteracoesMedicamentos() {
+                var texto = (medicamentosInput && medicamentosInput.value) ? medicamentosInput.value.trim() : '';
+                if (!texto) {
+                    bannerInteracoes.classList.add('hidden');
+                    return;
+                }
+                api.verificarInteracoesPaciente({ medicamentos_texto: texto }).then(function(r) {
+                    renderBannerInteracoes(r.alertas || []);
+                }).catch(function(err) {
+                    bannerInteracoes.classList.remove('hidden');
+                    bannerInteracoes.className = 'banner-interacoes banner-interacoes--amarelo';
+                    bannerInteracoes.textContent = 'Erro ao verificar interações: ' + (err.message || 'tente novamente.');
+                });
+            }
+
+            if (medicamentosInput) medicamentosInput.addEventListener('blur', verificarInteracoesMedicamentos);
+            if (btnVerificarInteracoes) btnVerificarInteracoes.addEventListener('click', verificarInteracoesMedicamentos);
+
+            document.getElementById('btn-verificar-alergia').addEventListener('click', function() {
+                var pacienteId = document.getElementById('alergia-paciente').value;
+                var medicamentoNome = document.getElementById('alergia-medicamento').value.trim();
+                var banner = document.getElementById('alerta-alergia-banner');
+                banner.classList.add('hidden');
+                if (!pacienteId || !medicamentoNome) {
+                    banner.className = 'alerta-banner alerta-banner--amarelo';
+                    banner.textContent = 'Selecione um paciente e informe o nome do medicamento.';
+                    banner.classList.remove('hidden');
+                    return;
+                }
+                api.verificarAlergia(parseInt(pacienteId, 10), medicamentoNome).then(function(r) {
+                    banner.classList.remove('hidden');
+                    if (r.alerta === true) {
+                        banner.className = 'alerta-banner alerta-banner--vermelho';
+                        banner.innerHTML = '⚠️ ' + (r.mensagem || 'Paciente possui alergia registrada a este medicamento.');
+                    } else {
+                        banner.className = 'alerta-banner alerta-banner--verde';
+                        banner.innerHTML = '✅ ' + (r.mensagem || 'Nenhuma alergia encontrada para este medicamento.');
+                    }
+                }).catch(function(err) {
+                    banner.className = 'alerta-banner alerta-banner--amarelo';
+                    banner.textContent = 'Erro ao verificar: ' + (err.message || 'tente novamente.');
+                    banner.classList.remove('hidden');
+                });
+            });
 
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -142,7 +270,7 @@
                     observacoes: document.getElementById('observacoes').value || ''
                 }).then(function(data) {
                     form.reset();
-                    loadPacientes();
+                    loadPacientes(currentPage);
                     btn.disabled = false;
                     alert('Paciente cadastrado com sucesso!');
                 }).catch(function(err) {
@@ -154,7 +282,6 @@
 
             window.analisarRiscoPaciente = function(id, nome) {
                 api.analisarRiscoPaciente(id).then(function(data) {
-                    console.log('[Risco clínico] Resultado para paciente', id, data);
                     var titulo = nome || ('Paciente #' + id);
                     alert(
                         'Risco clínico de ' + titulo + ':\n' +
@@ -168,7 +295,7 @@
                 });
             };
 
-            loadPacientes();
+            loadPacientes(1);
         })();
     </script>
 </body>

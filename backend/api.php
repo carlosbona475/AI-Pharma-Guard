@@ -226,13 +226,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     }
 }
 
-// ---- LISTAR PACIENTES ----
+// ---- LISTAR PACIENTES (com paginação) ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_pacientes') {
+    $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
+    $limit = isset($_GET['limit']) ? max(1, min(100, (int) $_GET['limit'])) : 20;
+    $offset = ($page - 1) * $limit;
+
     try {
-        $stmt = $conn->prepare("SELECT * FROM pacientes WHERE farmacia_id = ? ORDER BY nome");
+        $stmt = $conn->prepare('SELECT COUNT(*) AS total FROM pacientes WHERE farmacia_id = ?');
         $stmt->execute([$farmacia_id]);
+        $total = (int) $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+        $stmt = $conn->prepare('SELECT * FROM pacientes WHERE farmacia_id = ? ORDER BY nome LIMIT ? OFFSET ?');
+        $stmt->bindValue(1, $farmacia_id, PDO::PARAM_INT);
+        $stmt->bindValue(2, $limit, PDO::PARAM_INT);
+        $stmt->bindValue(3, $offset, PDO::PARAM_INT);
+        $stmt->execute();
         $pacientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        sendJson($pacientes);
+
+        sendJson([
+            'data' => $pacientes,
+            'total' => $total,
+            'page' => $page,
+            'limit' => $limit,
+        ]);
     } catch (PDOException $e) {
         sendError('Erro ao listar pacientes.', 500);
     }
@@ -434,6 +451,135 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     ];
 
     sendJson($resultado);
+}
+
+// ---- VERIFICAR INTERAÇÕES PACIENTE (por nome; interações globais) ----
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'verificar_interacoes_paciente') {
+    $raw = file_get_contents('php://input');
+    $data = $raw ? json_decode($raw, true) : null;
+    $pacienteId = isset($data['paciente_id']) ? (int) $data['paciente_id'] : 0;
+    $medicamentoNovo = isset($data['medicamento_novo']) ? trim((string) $data['medicamento_novo']) : '';
+    $medicamentosTexto = isset($data['medicamentos_texto']) ? trim((string) $data['medicamentos_texto']) : '';
+
+    $listaNomes = [];
+    if ($pacienteId > 0) {
+        if ($medicamentoNovo === '') {
+            sendError('medicamento_novo é obrigatório quando paciente_id é informado.', 400);
+        }
+        try {
+            $stmt = $conn->prepare('SELECT medicamentos_usados FROM pacientes WHERE farmacia_id = ? AND id = ? LIMIT 1');
+            $stmt->execute([$farmacia_id, $pacienteId]);
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            sendError('Erro ao consultar paciente.', 500);
+        }
+        if (!$row) {
+            sendJson(['alertas' => [], 'total' => 0]);
+        }
+        $medsTexto = (string) ($row['medicamentos_usados'] ?? '');
+        $listaNomes = array_filter(array_map('trim', preg_split('/[;,\/]/u', $medsTexto)));
+        $listaNomes = array_unique(array_merge([$medicamentoNovo], $listaNomes));
+    } elseif ($medicamentosTexto !== '') {
+        $listaNomes = array_unique(array_filter(array_map('trim', preg_split('/[;,\/]/u', $medicamentosTexto))));
+    } else {
+        sendError('Informe paciente_id + medicamento_novo ou medicamentos_texto.', 400);
+    }
+    $listaNomes = array_values($listaNomes);
+
+    $alertas = [];
+    try {
+        $stmt = $conn->prepare('SELECT medicamento_a_nome AS "medicamentoA", medicamento_b_nome AS "medicamentoB", tipo_interacao, nivel_risco, recomendacao FROM interacoes_globais');
+        $stmt->execute();
+        $todas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        $todas = [];
+    }
+
+    for ($i = 0; $i < count($listaNomes); $i++) {
+        for ($j = $i + 1; $j < count($listaNomes); $j++) {
+            $a = mb_strtolower($listaNomes[$i], 'UTF-8');
+            $b = mb_strtolower($listaNomes[$j], 'UTF-8');
+            foreach ($todas as $inter) {
+                $medA = mb_strtolower((string) ($inter['medicamentoA'] ?? ''), 'UTF-8');
+                $medB = mb_strtolower((string) ($inter['medicamentoB'] ?? ''), 'UTF-8');
+                $match = (mb_strpos($medA, $a) !== false && mb_strpos($medB, $b) !== false) ||
+                    (mb_strpos($medA, $b) !== false && mb_strpos($medB, $a) !== false);
+                if ($match) {
+                    $alertas[] = [
+                        'medicamentoA' => $inter['medicamentoA'],
+                        'medicamentoB' => $inter['medicamentoB'],
+                        'nivel_risco' => $inter['nivel_risco'],
+                        'recomendacao' => $inter['recomendacao'],
+                        'tipo_interacao' => $inter['tipo_interacao'] ?? '',
+                    ];
+                }
+            }
+        }
+    }
+
+    $ordem = ['grave' => 0, 'moderada' => 1, 'medio' => 1, 'baixo' => 2, 'leve' => 2];
+    usort($alertas, function ($x, $y) use ($ordem) {
+        $ox = $ordem[mb_strtolower($x['nivel_risco'] ?? '', 'UTF-8')] ?? 3;
+        $oy = $ordem[mb_strtolower($y['nivel_risco'] ?? '', 'UTF-8')] ?? 3;
+        return $ox - $oy;
+    });
+
+    sendJson(['alertas' => $alertas, 'total' => count($alertas)]);
+}
+
+// ---- VERIFICAR ALERGIA (paciente + medicamento) ----
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['action'] === 'verificar_alergia') {
+    $raw = file_get_contents('php://input');
+    $data = $raw ? json_decode($raw, true) : null;
+    $pacienteId = isset($data['paciente_id']) ? (int) $data['paciente_id'] : 0;
+    $medicamentoNome = isset($data['medicamento_nome']) ? trim((string) $data['medicamento_nome']) : '';
+
+    if ($pacienteId <= 0 || $medicamentoNome === '') {
+        sendJson(['alerta' => false, 'mensagem' => 'paciente_id e medicamento_nome são obrigatórios.'], 400);
+    }
+
+    try {
+        $stmt = $conn->prepare('SELECT alergias FROM pacientes WHERE farmacia_id = ? AND id = ? LIMIT 1');
+        $stmt->execute([$farmacia_id, $pacienteId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        sendJson(['success' => false, 'error' => 'Erro ao consultar paciente.'], 500);
+    }
+
+    if (!$row) {
+        sendJson(['alerta' => false, 'mensagem' => 'Paciente não encontrado.']);
+    }
+
+    $alergiasTexto = mb_strtolower((string) ($row['alergias'] ?? ''), 'UTF-8');
+    $medNorm = mb_strtolower($medicamentoNome, 'UTF-8');
+
+    if ($alergiasTexto === '') {
+        sendJson(['alerta' => false, 'mensagem' => 'Nenhuma alergia encontrada para este medicamento.']);
+    }
+
+    // Nome do medicamento aparece no texto de alergias?
+    if (mb_strpos($alergiasTexto, $medNorm, 0, 'UTF-8') !== false) {
+        sendJson([
+            'alerta' => true,
+            'mensagem' => 'Paciente possui alergia registrada a: ' . $medicamentoNome . '.',
+        ]);
+    }
+
+    // Algum termo de alergia (ex.: "Dipirona") coincide com o medicamento ou é substring?
+    $termos = preg_split('/[;,\/]| e /u', $alergiasTexto);
+    foreach ($termos as $t) {
+        $t = trim($t);
+        if ($t === '') continue;
+        $t = mb_strtolower($t, 'UTF-8');
+        if (mb_strpos($medNorm, $t, 0, 'UTF-8') !== false || mb_strpos($t, $medNorm, 0, 'UTF-8') !== false) {
+            sendJson([
+                'alerta' => true,
+                'mensagem' => 'Paciente possui alergia registrada a: ' . $medicamentoNome . '.',
+            ]);
+        }
+    }
+
+    sendJson(['alerta' => false, 'mensagem' => 'Nenhuma alergia encontrada para este medicamento.']);
 }
 
 sendError('Ação não reconhecida', 400);
