@@ -7,7 +7,7 @@ Sistema web multi-farmácia (SaaS) para gestão farmacêutica: cadastro de farm�
 ## Estrutura do projeto
 
 ```
-/
+
 ├── index.html              → Página inicial (Dashboard, Login, Criar conta)
 ├── layout_profissional.html → Layout com menu que aponta para frontend/pages/
 ├── README.md
