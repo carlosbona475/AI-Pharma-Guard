@@ -1,12 +1,22 @@
 <?php
-// Conexão PostgreSQL via variáveis de ambiente (Render / Supabase). Nenhuma credencial hardcoded.
-
 function getConnection() {
-    $host     = getenv('DB_HOST')     ?: 'localhost';
-    $dbname   = getenv('DB_NAME')     ?: 'farmacia';
-    $user     = getenv('DB_USER')     ?: 'postgres';
-    $password = getenv('DB_PASSWORD') ?: '';
-    $port     = getenv('DB_PORT')     ?: '5432';
+    // Tenta connection string completa primeiro (Render/Supabase)
+    $dsn_url = getenv('DATABASE_URL');
+    
+    if ($dsn_url) {
+        $params = parse_url($dsn_url);
+        $host     = $params['host'];
+        $port     = $params['port'] ?? 5432;
+        $dbname   = ltrim($params['path'], '/');
+        $user     = $params['user'];
+        $password = $params['pass'];
+    } else {
+        $host     = getenv('DB_HOST')     ?: 'localhost';
+        $dbname   = getenv('DB_NAME')     ?: 'farmacia';
+        $user     = getenv('DB_USER')     ?: 'postgres';
+        $password = getenv('DB_PASSWORD') ?: '';
+        $port     = getenv('DB_PORT')     ?: '5432';
+    }
 
     try {
         $pdo = new PDO(
@@ -17,6 +27,7 @@ function getConnection() {
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
+                PDO::ATTR_SSL_CA             => null,
             ]
         );
         return $pdo;
@@ -25,7 +36,8 @@ function getConnection() {
         header('Content-Type: application/json');
         echo json_encode([
             'success' => false,
-            'message' => 'Erro ao conectar ao banco. Verifique as variáveis de ambiente.'
+            'message' => 'Erro ao conectar ao banco. Verifique as variáveis de ambiente.',
+            'debug'   => $e->getMessage()
         ]);
         exit;
     }
