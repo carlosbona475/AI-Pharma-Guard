@@ -27,7 +27,15 @@ function sendError($message, $code = 500) {
     exit;
 }
 
-require_once __DIR__ . '/config/database.php';
+// Resposta padrão para erros de banco
+function sendDbError() {
+    http_response_code(500);
+    ob_end_clean();
+    echo json_encode(['success' => false, 'message' => 'Erro interno'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+require_once __DIR__ . '/db.php';
 $conn = getConnection();
 
 // SaaS multi-farmácia: usar farmácia da sessão ou padrão 1 (evita NOT NULL no INSERT)
@@ -94,8 +102,7 @@ function verificarInteracoes(PDO $conn, $farmacia_id, array $idsMedicamentos) {
             }
         }
     } catch (PDOException $e) {
-        // No contexto de reuso em outras actions, propagamos como erro genérico
-        sendError('Erro ao verificar interações.', 500);
+        sendDbError();
     }
     return $interacoes;
 }
@@ -222,7 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             'interacoes_cadastradas' => $interacoes
         ]);
     } catch (PDOException $e) {
-        sendError('Erro ao consultar estatísticas. Verifique se o banco e as tabelas existem.', 500);
+        sendDbError();
     }
 }
 
@@ -276,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
             'limit' => $limit,
         ]);
     } catch (PDOException $e) {
-        sendError('Erro ao listar pacientes.', 500);
+        sendDbError();
     }
 }
 
@@ -289,6 +296,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         exit;
     }
     try {
+        $alergiasBrutas = isset($data['alergias']) ? (string) $data['alergias'] : '';
+        $alergiasNormalizadas = trim(preg_replace('/\s+/', ' ', mb_strtolower($alergiasBrutas, 'UTF-8')));
+
         $stmt = $conn->prepare("INSERT INTO pacientes (farmacia_id, nome, idade, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
         $stmt->execute([
             $farmacia_id,
@@ -297,15 +307,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
             isset($data['sexo']) ? $data['sexo'] : 'masculino',
             isset($data['doencas']) ? $data['doencas'] : '',
             isset($data['medicamentos']) ? $data['medicamentos'] : '',
-            isset($data['alergias']) ? $data['alergias'] : '',
+            $alergiasNormalizadas,
             isset($data['historico_clinico']) ? $data['historico_clinico'] : '',
             isset($data['observacoes']) ? $data['observacoes'] : '',
         ]);
         sendJson(['success' => true, 'id' => (int) $conn->lastInsertId()]);
         exit;
     } catch (PDOException $e) {
-        sendJson(['success' => false, 'message' => $e->getMessage()]);
-        exit;
+        sendDbError();
     }
 }
 
@@ -317,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         $medicamentos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         sendJson($medicamentos);
     } catch (PDOException $e) {
-        sendError('Erro ao listar medicamentos.', 500);
+        sendDbError();
     }
 }
 
@@ -340,7 +349,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         ]);
         sendJson(['message' => 'Medicamento cadastrado com sucesso!', 'id' => (int) $conn->lastInsertId()]);
     } catch (PDOException $e) {
-        sendError($e->getMessage(), 500);
+        sendDbError();
     }
 }
 
@@ -361,7 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         $lista = $stmt->fetchAll(PDO::FETCH_ASSOC);
         sendJson($lista);
     } catch (PDOException $e) {
-        sendError('Erro ao listar interações.', 500);
+        sendDbError();
     }
 }
 
@@ -382,7 +391,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         $stmt->execute([$farmacia_id, $medA, $medB, $tipo, $nivel, $recomendacao]);
         sendJson(['message' => 'Interação cadastrada com sucesso!', 'id' => (int) $conn->lastInsertId()]);
     } catch (PDOException $e) {
-        sendError($e->getMessage(), 500);
+        sendDbError();
     }
 }
 
@@ -417,7 +426,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
             sendError('Paciente não encontrado.', 404);
         }
     } catch (PDOException $e) {
-        sendError('Erro ao buscar paciente.', 500);
+        sendDbError();
     }
 
     // Montar lista de medicamentos do paciente a partir do texto livre
@@ -445,8 +454,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
                     ];
                 }
             } catch (PDOException $e) {
-                // Em caso de erro na busca de um medicamento isolado, apenas seguimos
-                continue;
+                sendDbError();
             }
         }
     }
@@ -491,13 +499,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         if ($medicamentoNovo === '') {
             sendError('medicamento_novo é obrigatório quando paciente_id é informado.', 400);
         }
-        try {
-            $stmt = $conn->prepare('SELECT medicamentos_usados FROM pacientes WHERE farmacia_id = ? AND id = ? LIMIT 1');
-            $stmt->execute([$farmacia_id, $pacienteId]);
-            $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            sendError('Erro ao consultar paciente.', 500);
-        }
+    try {
+        $stmt = $conn->prepare('SELECT medicamentos_usados FROM pacientes WHERE farmacia_id = ? AND id = ? LIMIT 1');
+        $stmt->execute([$farmacia_id, $pacienteId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        sendDbError();
+    }
         if (!$row) {
             sendJson(['alertas' => [], 'total' => 0]);
         }
@@ -517,7 +525,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         $stmt->execute();
         $todas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        $todas = [];
+        sendDbError();
     }
 
     for ($i = 0; $i < count($listaNomes); $i++) {
@@ -568,7 +576,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         $stmt->execute([$farmacia_id, $pacienteId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
-        sendJson(['success' => false, 'error' => 'Erro ao consultar paciente.'], 500);
+        sendDbError();
     }
 
     if (!$row) {

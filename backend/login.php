@@ -11,7 +11,7 @@ function sendJson($data, $code = 200) {
     exit;
 }
 
-require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/db.php';
 $conn = getConnection();
 
 $raw = file_get_contents('php://input');
@@ -30,7 +30,8 @@ try {
     $stmt->execute([$email]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    sendJson(['success' => false, 'message' => 'Erro ao consultar usuário.'], 500);
+    // Erro de banco → resposta genérica para o frontend
+    sendJson(['success' => false, 'message' => 'Erro interno'], 500);
 }
 
 if (!$row) {

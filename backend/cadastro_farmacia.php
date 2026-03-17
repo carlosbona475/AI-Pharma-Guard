@@ -11,7 +11,7 @@ function sendJson($data, $code = 200) {
     exit;
 }
 
-require_once __DIR__ . '/config/database.php';
+require_once __DIR__ . '/db.php';
 $conn = getConnection();
 
 $raw = file_get_contents('php://input');
@@ -37,5 +37,6 @@ try {
     if ($e->getCode() === '23505') {
         sendJson(['success' => false, 'message' => 'E-mail já cadastrado.'], 400);
     }
-    sendJson(['success' => false, 'message' => 'Erro ao cadastrar'], 500);
+    // Erro genérico de banco
+    sendJson(['success' => false, 'message' => 'Erro interno'], 500);
 }
