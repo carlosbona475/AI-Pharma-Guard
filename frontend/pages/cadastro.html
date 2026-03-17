@@ -27,6 +27,12 @@
                     <label for="telefone">Telefone</label>
                     <input type="text" id="telefone" name="telefone" placeholder="(00) 00000-0000">
                 </div>
+                <div class="form-group aceite-termos-group" style="grid-column: 1 / -1;">
+                    <label>
+                        <input type="checkbox" id="aceite-termos" required>
+                        <span>Li e aceito os <a href="termos.html" target="_blank">Termos de Uso</a> do AI Pharma Guard.</span>
+                    </label>
+                </div>
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary">Criar Conta</button>
                 </div>
@@ -46,6 +52,13 @@
             var telefone = document.getElementById('telefone').value;
             var msgEl = document.getElementById('cadastro-msg');
             msgEl.textContent = '';
+
+            var aceite = document.getElementById('aceite-termos');
+            if (!aceite || !aceite.checked) {
+                msgEl.style.color = 'var(--risk-severe)';
+                msgEl.textContent = 'Você precisa aceitar os Termos de Uso para criar uma conta.';
+                return;
+            }
 
             fetch('../backend/cadastro_farmacia.php', {
                 method: 'POST',
