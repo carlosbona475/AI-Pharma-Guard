@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pacientes - AI Pharma Guard</title>
     <link rel="stylesheet" href="../css/app.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <header class="app-topbar">
@@ -154,7 +155,7 @@
                                 '<td>' + escapeHtml(p.doencas || '-') + '</td>' +
                                 '<td>' + escapeHtml(p.medicamentos_usados || '-') + '</td>' +
                                 '<td><button type="button" class="btn btn-secondary btn-sm" onclick="analisarRiscoPaciente(' + p.id + ', \'' + (p.nome ? String(p.nome).replace(/'/g, "\\'") : '') + '\')">Analisar risco clínico</button> ' +
-                                '<a href="../backend/exportar_prontuario.php?paciente_id=' + p.id + '" target="_blank" class="btn btn-sm btn-export-pdf" title="Exportar prontuário em PDF">Exportar PDF</a></td>' +
+                                '<button type="button" onclick="exportarPDF(' + p.id + ')" class="btn btn-sm btn-export-pdf" title="Exportar prontuário em PDF">Exportar PDF</button></td>' +
                                 '</tr>';
                         }).join('');
                     }
@@ -294,6 +295,78 @@
                     console.error('[Risco clínico] Erro na análise:', err);
                     alert('Erro ao analisar risco clínico: ' + (err && err.message ? err.message : 'Verifique o console.'));
                 });
+            };
+
+            // Exportar prontuário em PDF via jsPDF (dados buscados na API)
+            window.exportarPDF = function(pacienteId) {
+                var apiUrl = '../backend/api.php?action=buscar_paciente&id=' + encodeURIComponent(pacienteId);
+                fetch(apiUrl, { method: 'GET', credentials: 'same-origin' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (!data.success || !data.paciente) {
+                            alert(data.message || 'Paciente não encontrado.');
+                            return;
+                        }
+                        var p = data.paciente;
+                        var doc = new window.jspdf.jsPDF();
+                        var margem = 20;
+                        var largura = doc.internal.pageSize.getWidth() - margem * 2;
+                        var y = 20;
+                        var lh = 6;
+
+                        function txt(s) { return (s != null && String(s).trim() !== '') ? String(s).trim() : '—'; }
+                        function bloco(titulo, conteudo, vermelho) {
+                            doc.setFontSize(11);
+                            doc.setFont('helvetica', 'bold');
+                            doc.setTextColor(30, 58, 138);
+                            doc.text(titulo, margem, y);
+                            y += lh;
+                            doc.setFont('helvetica', 'normal');
+                            if (vermelho) doc.setTextColor(185, 28, 28);
+                            else doc.setTextColor(50, 50, 50);
+                            var linhas = doc.splitTextToSize(conteudo, largura);
+                            doc.text(linhas, margem, y);
+                            y += linhas.length * lh + 8;
+                            doc.setTextColor(0, 0, 0);
+                        }
+
+                        doc.setFontSize(16);
+                        doc.setTextColor(37, 99, 235);
+                        doc.text('AI Pharma Guard — Prontuário Farmacêutico', margem, y);
+                        y += 10;
+                        doc.setFontSize(9);
+                        doc.setTextColor(100, 116, 139);
+                        doc.text('Data de geração: ' + new Date().toLocaleString('pt-BR'), margem, y);
+                        y += 12;
+
+                        doc.setFontSize(10);
+                        doc.setTextColor(0, 0, 0);
+                        doc.text('Nome: ' + txt(p.nome), margem, y);
+                        y += lh;
+                        doc.text('Idade: ' + txt(p.idade) + '    Sexo: ' + txt(p.sexo), margem, y);
+                        y += lh + 8;
+
+                        bloco('Doenças / Condições', txt(p.doencas), false);
+                        bloco('Medicamentos em uso', txt(p.medicamentos_usados), false);
+                        bloco('Alergias conhecidas', txt(p.alergias), (txt(p.alergias) !== '—'));
+                        bloco('Histórico clínico', txt(p.historico_clinico), false);
+                        bloco('Observações farmacêuticas', txt(p.observacoes), false);
+
+                        y += 6;
+                        doc.setDrawColor(226, 232, 240);
+                        doc.line(margem, y, margem + largura, y);
+                        y += 10;
+                        doc.setFontSize(9);
+                        doc.setTextColor(100, 116, 139);
+                        doc.text('Documento gerado pelo AI Pharma Guard — ' + new Date().toLocaleString('pt-BR'), margem, y);
+
+                        var nomeArquivo = 'prontuario_' + (p.nome || 'paciente').replace(/[^a-zA-Z0-9\u00C0-\u024F\s_-]/g, '').replace(/\s+/g, '_').substring(0, 60) + '_' + new Date().toISOString().slice(0, 10) + '.pdf';
+                        doc.save(nomeArquivo);
+                    })
+                    .catch(function(err) {
+                        console.error('[Exportar PDF]', err);
+                        alert('Erro ao buscar dados do paciente. Verifique o console.');
+                    });
             };
 
             loadPacientes(1);

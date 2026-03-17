@@ -226,6 +226,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
     }
 }
 
+// ---- BUSCAR PACIENTE (para exportação de prontuário, exige sessão) ----
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'buscar_paciente') {
+    $id = isset($_GET['id']) ? (int) $_GET['id'] : 0;
+    if ($id <= 0) {
+        http_response_code(400);
+        sendJson(['success' => false, 'message' => 'ID inválido.']);
+    }
+    if ($farmacia_id <= 0) {
+        http_response_code(401);
+        sendJson(['success' => false, 'message' => 'Faça login para acessar.']);
+    }
+    try {
+        $stmt = $conn->prepare('SELECT id, nome, idade, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes, created_at FROM pacientes WHERE id = ? AND farmacia_id = ? LIMIT 1');
+        $stmt->execute([$id, $farmacia_id]);
+        $paciente = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        sendError('Erro ao buscar paciente.', 500);
+    }
+    if (!$paciente) {
+        http_response_code(404);
+        sendJson(['success' => false, 'message' => 'Paciente não encontrado.']);
+    }
+    sendJson(['success' => true, 'paciente' => $paciente]);
+}
+
 // ---- LISTAR PACIENTES (com paginação) ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_pacientes') {
     $page = isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1;
