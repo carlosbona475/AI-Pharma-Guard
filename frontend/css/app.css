@@ -295,6 +295,26 @@ body {
     background: var(--primary-soft);
 }
 
+.btn-sm {
+    padding: 8px 14px;
+    font-size: 0.875rem;
+    min-height: 36px;
+}
+
+.btn-export-pdf {
+    background: var(--risk-none);
+    color: #fff;
+    border: none;
+    text-decoration: none;
+    margin-left: 6px;
+}
+
+.btn-export-pdf:hover {
+    background: #15803d;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
 /* ---- Tabelas organizadas ---- */
 .table-wrap {
     overflow-x: auto;

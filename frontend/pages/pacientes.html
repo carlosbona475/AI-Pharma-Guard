@@ -153,7 +153,8 @@
                                 '<td>' + (p.sexo || '-') + '</td>' +
                                 '<td>' + escapeHtml(p.doencas || '-') + '</td>' +
                                 '<td>' + escapeHtml(p.medicamentos_usados || '-') + '</td>' +
-                                '<td><button type="button" class="btn btn-secondary btn-sm" onclick="analisarRiscoPaciente(' + p.id + ', \'' + (p.nome ? String(p.nome).replace(/'/g, "\\'") : '') + '\')">Analisar risco clínico</button></td>' +
+                                '<td><button type="button" class="btn btn-secondary btn-sm" onclick="analisarRiscoPaciente(' + p.id + ', \'' + (p.nome ? String(p.nome).replace(/'/g, "\\'") : '') + '\')">Analisar risco clínico</button> ' +
+                                '<a href="../backend/exportar_prontuario.php?paciente_id=' + p.id + '" target="_blank" class="btn btn-sm btn-export-pdf" title="Exportar prontuário em PDF">Exportar PDF</a></td>' +
                                 '</tr>';
                         }).join('');
                     }

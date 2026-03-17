@@ -1,0 +1,11 @@
+{
+    "name": "ai-pharma-guard/app",
+    "description": "AI Pharma Guard - Sistema de gestão farmacêutica",
+    "require": {
+        "php": ">=7.4",
+        "dompdf/dompdf": "^2.0"
+    },
+    "config": {
+        "vendor-dir": "vendor"
+    }
+}
