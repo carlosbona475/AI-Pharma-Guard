@@ -6,79 +6,191 @@
     <title>Nova senha - AI Pharma Guard</title>
     <link rel="stylesheet" href="../css/app.css">
 </head>
-<body>
-    <main class="app-main" style="margin-left: 0; margin-top: 0; max-width: 480px; margin: 48px auto; padding: 24px;">
-        <h1 class="page-title">Definir nova senha</h1>
-        <div class="card">
-            <form id="form-nova-senha" class="form-grid">
-                <div class="form-group" style="grid-column: 1 / -1;">
-                    <label for="nova_senha">Nova senha</label>
-                    <input type="password" id="nova_senha" name="nova_senha" required minlength="6" placeholder="Mínimo 6 caracteres">
+<body class="nova-senha-page-body">
+    <div class="cadastro-page">
+        <header class="cadastro-page__header">
+            <div class="cadastro-page__brand">
+                <span class="cadastro-page__logo" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="nova-sh-grad" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#4a7eb0"/>
+                                <stop offset="1" stop-color="#2c5d8c"/>
+                            </linearGradient>
+                        </defs>
+                        <path fill="url(#nova-sh-grad)" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                        <path fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                        <path stroke="#fff" stroke-width="1.8" stroke-linecap="round" d="M12 9v6M9 12h6"/>
+                    </svg>
+                </span>
+                <span class="cadastro-page__brand-name">AI Pharma Guard</span>
+            </div>
+            <a href="login.html" class="cadastro-page__back">← Voltar ao login</a>
+        </header>
+
+        <div class="cadastro-card cadastro-card--narrow">
+            <div id="nova-invalid" class="nova-invalid hidden" role="alert">
+                <p class="nova-invalid__text">Link inválido ou expirado. Solicite uma nova redefinição de senha na página de recuperação.</p>
+                <a href="esqueci_senha.html" class="btn btn-primary cadastro-submit">Solicitar novo link</a>
+            </div>
+
+            <div id="nova-form-wrap">
+                <div class="public-auth-hero-icon public-auth-hero-icon--lock" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 </div>
-                <div class="form-group" style="grid-column: 1 / -1;">
-                    <label for="confirmar_senha">Confirmar senha</label>
-                    <input type="password" id="confirmar_senha" name="confirmar_senha" required minlength="6" placeholder="Repita a senha">
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Redefinir senha</button>
-                </div>
-            </form>
-            <p style="margin-top: 16px; color: var(--text-muted);">
-                <a href="login.html">Voltar ao login</a>
-            </p>
-            <p id="msg" style="margin-top: 12px;"></p>
+                <h1 class="cadastro-card__title">Definir nova senha</h1>
+                <p class="cadastro-card__subtitle">Escolha uma senha segura para acessar o painel da farmácia.</p>
+
+                <form id="form-nova-senha" class="cadastro-form" novalidate>
+                    <div class="cadastro-field">
+                        <label class="cadastro-label" for="nova_senha">Nova senha</label>
+                        <div class="cadastro-input-wrap">
+                            <span class="cadastro-input-wrap__icon" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </span>
+                            <input type="password" id="nova_senha" name="nova_senha" required minlength="6" placeholder="Mínimo 6 caracteres" autocomplete="new-password" class="cadastro-input cadastro-input--inset">
+                            <button type="button" class="cadastro-pass-toggle" id="nova-pass-toggle" aria-label="Mostrar senha" aria-pressed="false">
+                                <svg class="cadastro-pass-toggle__show" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <svg class="cadastro-pass-toggle__hide hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="cadastro-field">
+                        <label class="cadastro-label" for="confirmar_senha">Confirmar senha</label>
+                        <div class="cadastro-input-wrap">
+                            <span class="cadastro-input-wrap__icon" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </span>
+                            <input type="password" id="confirmar_senha" name="confirmar_senha" required minlength="6" placeholder="Repita a senha" autocomplete="new-password" class="cadastro-input cadastro-input--inset">
+                            <button type="button" class="cadastro-pass-toggle" id="nova-confirm-toggle" aria-label="Mostrar confirmação" aria-pressed="false">
+                                <svg class="cadastro-pass-toggle__show" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                <svg class="cadastro-pass-toggle__hide hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                            </button>
+                        </div>
+                        <p class="cadastro-match-hint hidden" id="nova-match-hint" role="alert">As senhas não coincidem.</p>
+                    </div>
+
+                    <div class="cadastro-actions">
+                        <button type="submit" class="btn btn-primary cadastro-submit" id="btn-nova-senha">
+                            <span class="nova-btn-idle">Redefinir senha</span>
+                            <span class="nova-btn-loading hidden" aria-hidden="true">Salvando...</span>
+                        </button>
+                    </div>
+                </form>
+
+                <a href="login.html" class="esqueci-footer-link">← Voltar ao login</a>
+                <p id="msg" class="cadastro-msg" role="status"></p>
+            </div>
         </div>
-    </main>
+    </div>
+
     <script src="../js/fetch-helpers.js"></script>
     <script>
-        (function() {
+        (function () {
             var params = new URLSearchParams(window.location.search);
             var token = params.get('token') || '';
+            var formWrap = document.getElementById('nova-form-wrap');
+            var invalid = document.getElementById('nova-invalid');
+            var form = document.getElementById('form-nova-senha');
+            var msgEl = document.getElementById('msg');
+            var matchHint = document.getElementById('nova-match-hint');
+            var novaSenha = document.getElementById('nova_senha');
+            var confirmar = document.getElementById('confirmar_senha');
+            var btn = document.getElementById('btn-nova-senha');
+
+            function bindToggle(btnId, inputId) {
+                var b = document.getElementById(btnId);
+                var input = document.getElementById(inputId);
+                var iconShow = b.querySelector('.cadastro-pass-toggle__show');
+                var iconHide = b.querySelector('.cadastro-pass-toggle__hide');
+                b.addEventListener('click', function () {
+                    var showing = input.getAttribute('type') === 'text';
+                    if (showing) {
+                        input.setAttribute('type', 'password');
+                        b.setAttribute('aria-label', 'Mostrar senha');
+                        b.setAttribute('aria-pressed', 'false');
+                        iconShow.classList.remove('hidden');
+                        iconHide.classList.add('hidden');
+                    } else {
+                        input.setAttribute('type', 'text');
+                        b.setAttribute('aria-label', 'Ocultar senha');
+                        b.setAttribute('aria-pressed', 'true');
+                        iconShow.classList.add('hidden');
+                        iconHide.classList.remove('hidden');
+                    }
+                });
+            }
+            bindToggle('nova-pass-toggle', 'nova_senha');
+            bindToggle('nova-confirm-toggle', 'confirmar_senha');
+
+            function checkMatch() {
+                var a = novaSenha.value;
+                var b = confirmar.value;
+                if (!b) {
+                    matchHint.classList.add('hidden');
+                    return true;
+                }
+                var ok = a === b;
+                matchHint.classList.toggle('hidden', ok);
+                return ok;
+            }
+            novaSenha.addEventListener('input', checkMatch);
+            confirmar.addEventListener('input', checkMatch);
 
             if (!token) {
-                document.getElementById('msg').style.color = 'var(--risk-severe)';
-                document.getElementById('msg').textContent = 'Link inválido. Solicite uma nova redefinição de senha.';
-                document.getElementById('form-nova-senha').querySelector('button[type="submit"]').disabled = true;
+                formWrap.classList.add('hidden');
+                invalid.classList.remove('hidden');
+                return;
             }
 
-            document.getElementById('form-nova-senha').addEventListener('submit', function (e) {
+            form.addEventListener('submit', function (e) {
                 e.preventDefault();
-                var novaSenha = document.getElementById('nova_senha').value;
-                var confirmarSenha = document.getElementById('confirmar_senha').value;
-                var msgEl = document.getElementById('msg');
                 msgEl.textContent = '';
+                msgEl.className = 'cadastro-msg';
 
-                if (novaSenha !== confirmarSenha) {
-                    msgEl.style.color = 'var(--risk-severe)';
-                    msgEl.textContent = 'As senhas não coincidem.';
+                if (!checkMatch() || novaSenha.value !== confirmar.value) {
+                    matchHint.classList.remove('hidden');
+                    msgEl.classList.add('cadastro-msg--err');
+                    msgEl.textContent = 'As senhas precisam ser iguais.';
                     return;
                 }
-
-                if (novaSenha.length < 6) {
-                    msgEl.style.color = 'var(--risk-severe)';
+                if (novaSenha.value.length < 6) {
+                    msgEl.classList.add('cadastro-msg--err');
                     msgEl.textContent = 'A senha deve ter no mínimo 6 caracteres.';
                     return;
                 }
 
+                btn.disabled = true;
+                btn.querySelector('.nova-btn-idle').classList.add('hidden');
+                btn.querySelector('.nova-btn-loading').classList.remove('hidden');
+
                 fetch('/backend/nova_senha.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ token: token, nova_senha: novaSenha })
+                    body: JSON.stringify({ token: token, nova_senha: novaSenha.value })
                 })
-                .then(parseJsonFetchResponse)
-                .then(function(data) {
-                    msgEl.style.color = data.success ? 'var(--risk-none)' : 'var(--risk-severe)';
-                    msgEl.textContent = data.message || (data.success ? 'Senha alterada.' : 'Erro.');
-                    if (data.success) {
-                        msgEl.textContent = 'Senha alterada com sucesso! Redirecionando para o login em 3 segundos...';
-                        setTimeout(function() { window.location.href = 'login.html'; }, 3000);
-                    }
-                })
-                .catch(function(err) {
-                    console.error('Erro:', err);
-                    msgEl.style.color = 'var(--risk-severe)';
-                    msgEl.textContent = err.message || 'Erro ao conectar. Verifique se o servidor está rodando.';
-                });
+                    .then(parseJsonFetchResponse)
+                    .then(function (data) {
+                        if (data.success) {
+                            msgEl.classList.add('cadastro-msg--ok');
+                            msgEl.textContent = 'Senha alterada com sucesso! Redirecionando para o login…';
+                            setTimeout(function () { window.location.href = 'login.html'; }, 2500);
+                        } else {
+                            msgEl.classList.add('cadastro-msg--err');
+                            msgEl.textContent = data.message || 'Não foi possível redefinir a senha.';
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error('Erro:', err);
+                        msgEl.classList.add('cadastro-msg--err');
+                        msgEl.textContent = err.message || 'Erro ao conectar. Verifique se o servidor está rodando.';
+                    })
+                    .finally(function () {
+                        btn.disabled = false;
+                        btn.querySelector('.nova-btn-idle').classList.remove('hidden');
+                        btn.querySelector('.nova-btn-loading').classList.add('hidden');
+                    });
             });
         })();
     </script>

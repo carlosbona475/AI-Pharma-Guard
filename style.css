@@ -1,29 +1,79 @@
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
+/**
+ * Páginas na raiz que ainda referenciam style.css herdam o mesmo design system.
+ * O arquivo único de verdade é frontend/css/app.css (sem mudar pastas ou rotas).
+ */
+@import url('frontend/css/app.css');
+
+/* ---- Compat: headers simples (sem .app-topbar) ---- */
+body > header:not(.app-topbar) {
+    background: linear-gradient(180deg, var(--primary-light) 0%, var(--primary) 100%);
+    color: #fff;
+    padding: var(--space-3) var(--space-4);
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-header {
-    background: #007bff;
-    color: white;
-    padding: 10px 0;
-    text-align: center;
+body > header:not(.app-topbar) h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-family: 'Inter', system-ui, sans-serif;
 }
 
 #dashboard {
-    padding: 20px;
+    padding: var(--space-4);
+    max-width: 1280px;
+    margin: 0 auto;
 }
 
-form {
-    margin-bottom: 20px;
-    background: white;
-    padding: 15px;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+body > main:not(.app-main) {
+    padding: var(--space-4);
+    max-width: 1280px;
+    margin: 0 auto;
 }
 
-h2, h3 {
-    color: #333;
+body > main:not(.app-main) h2 {
+    margin-top: 0;
+    color: var(--secondary);
+    font-size: 1.375rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+body > main:not(.app-main) table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--space-3);
+    font-size: 0.9375rem;
+    background: var(--surface-elevated);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--card-border);
+}
+
+body > main:not(.app-main) th,
+body > main:not(.app-main) td {
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+}
+
+body > main:not(.app-main) th {
+    background: linear-gradient(180deg, #f1f5f9 0%, #e8eef4 100%);
+    font-weight: 700;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--secondary);
+}
+
+body > main:not(.app-main) tbody tr:last-child td {
+    border-bottom: none;
+}
+
+body > main:not(.app-main) tbody tr:hover {
+    background: rgba(44, 93, 140, 0.06);
 }

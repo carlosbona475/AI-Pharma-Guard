@@ -26,4 +26,12 @@
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') close();
     });
+
+    document.querySelectorAll('.app-logout-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            fetch('/backend/auth/logout.php', { method: 'GET', credentials: 'same-origin' }).finally(function () {
+                window.location.href = 'login.html';
+            });
+        });
+    });
 })();

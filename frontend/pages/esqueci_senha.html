@@ -6,52 +6,125 @@
     <title>Esqueci minha senha - AI Pharma Guard</title>
     <link rel="stylesheet" href="../css/app.css">
 </head>
-<body>
-    <main class="app-main" style="margin-left: 0; margin-top: 0; max-width: 480px; margin: 48px auto; padding: 24px;">
-        <h1 class="page-title">Recuperar senha</h1>
-        <div class="card">
-            <p style="color: var(--text-muted); margin-bottom: 16px;">
-                Informe o e-mail da sua farmácia. Enviaremos um link para redefinir sua senha.
-            </p>
-            <form id="form-esqueci" class="form-grid">
-                <div class="form-group" style="grid-column: 1 / -1;">
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" required placeholder="contato@farmacia.com">
+<body class="esqueci-page-body">
+    <div class="cadastro-page">
+        <header class="cadastro-page__header">
+            <div class="cadastro-page__brand">
+                <span class="cadastro-page__logo" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="esq-sh-grad" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#4a7eb0"/>
+                                <stop offset="1" stop-color="#2c5d8c"/>
+                            </linearGradient>
+                        </defs>
+                        <path fill="url(#esq-sh-grad)" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                        <path fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                        <path stroke="#fff" stroke-width="1.8" stroke-linecap="round" d="M12 9v6M9 12h6"/>
+                    </svg>
+                </span>
+                <span class="cadastro-page__brand-name">AI Pharma Guard</span>
+            </div>
+            <a href="login.html" class="cadastro-page__back">← Voltar ao login</a>
+        </header>
+
+        <div class="cadastro-card cadastro-card--narrow">
+            <div id="esqueci-form-step">
+                <div class="public-auth-hero-icon public-auth-hero-icon--mail" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Enviar instruções</button>
+                <h1 class="cadastro-card__title">Recuperar senha</h1>
+                <p class="cadastro-card__subtitle">Digite seu e-mail cadastrado e enviaremos as instruções para redefinir sua senha.</p>
+
+                <form id="form-esqueci" class="cadastro-form" novalidate>
+                    <div class="cadastro-field">
+                        <label class="cadastro-label" for="email">E-mail</label>
+                        <div class="cadastro-input-wrap">
+                            <span class="cadastro-input-wrap__icon" aria-hidden="true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                            </span>
+                            <input type="email" id="email" name="email" required placeholder="contato@suafarmacia.com.br" autocomplete="email" class="cadastro-input cadastro-input--inset">
+                        </div>
+                    </div>
+                    <div class="cadastro-actions">
+                        <button type="submit" class="btn btn-primary cadastro-submit" id="btn-enviar-esqueci">
+                            <span class="esqueci-btn-idle">Enviar instruções</span>
+                            <span class="esqueci-btn-loading hidden" aria-hidden="true">Enviando...</span>
+                        </button>
+                    </div>
+                </form>
+
+                <a href="login.html" class="esqueci-footer-link">← Lembrou a senha? Entrar</a>
+                <p id="msg" class="cadastro-msg" role="status"></p>
+            </div>
+
+            <div id="esqueci-success-step" class="esqueci-success hidden" role="status" aria-live="polite">
+                <div class="esqueci-success__check" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                 </div>
-            </form>
-            <p style="margin-top: 16px; color: var(--text-muted);">
-                <a href="login.html">Voltar ao login</a>
-            </p>
-            <p id="msg" style="margin-top: 12px;"></p>
+                <p class="esqueci-success__title">Verifique seu e-mail</p>
+                <p class="esqueci-success__text" id="esqueci-success-msg"></p>
+                <a href="login.html" class="btn btn-primary cadastro-submit">Voltar ao login</a>
+            </div>
         </div>
-    </main>
+    </div>
+
     <script src="../js/fetch-helpers.js"></script>
     <script>
-        document.getElementById('form-esqueci').addEventListener('submit', function (e) {
-            e.preventDefault();
-            var email = document.getElementById('email').value.trim();
+        (function () {
+            var form = document.getElementById('form-esqueci');
             var msgEl = document.getElementById('msg');
-            msgEl.textContent = '';
+            var formStep = document.getElementById('esqueci-form-step');
+            var successStep = document.getElementById('esqueci-success-step');
+            var successMsg = document.getElementById('esqueci-success-msg');
+            var btn = document.getElementById('btn-enviar-esqueci');
+            var idle = btn.querySelector('.esqueci-btn-idle');
+            var loading = btn.querySelector('.esqueci-btn-loading');
 
-            fetch('/backend/esqueci_senha.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email })
-            })
-            .then(parseJsonFetchResponse)
-            .then(function(data) {
-                msgEl.style.color = data.success ? 'var(--risk-none)' : 'var(--risk-severe)';
-                msgEl.textContent = data.message || (data.success ? 'Verifique seu e-mail.' : 'Erro ao enviar.');
-            })
-            .catch(function(err) {
-                console.error('Erro:', err);
-                msgEl.style.color = 'var(--risk-severe)';
-                msgEl.textContent = err.message || 'Erro ao conectar. Verifique se o servidor está rodando.';
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var email = document.getElementById('email').value.trim();
+                msgEl.textContent = '';
+                msgEl.className = 'cadastro-msg';
+
+                if (!email) {
+                    msgEl.classList.add('cadastro-msg--err');
+                    msgEl.textContent = 'Informe um e-mail válido.';
+                    return;
+                }
+
+                btn.disabled = true;
+                idle.classList.add('hidden');
+                loading.classList.remove('hidden');
+
+                fetch('/backend/esqueci_senha.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: email })
+                })
+                    .then(parseJsonFetchResponse)
+                    .then(function (data) {
+                        if (data.success) {
+                            successMsg.textContent = data.message || 'Se o e-mail existir, você receberá as instruções.';
+                            formStep.classList.add('hidden');
+                            successStep.classList.remove('hidden');
+                        } else {
+                            msgEl.classList.add('cadastro-msg--err');
+                            msgEl.textContent = data.message || 'Não foi possível enviar.';
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error('Erro:', err);
+                        msgEl.classList.add('cadastro-msg--err');
+                        msgEl.textContent = err.message || 'Erro ao conectar. Verifique se o servidor está rodando.';
+                    })
+                    .finally(function () {
+                        btn.disabled = false;
+                        idle.classList.remove('hidden');
+                        loading.classList.add('hidden');
+                    });
             });
-        });
+        })();
     </script>
 </body>
 </html>

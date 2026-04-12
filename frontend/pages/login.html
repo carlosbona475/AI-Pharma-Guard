@@ -6,47 +6,121 @@
     <title>Login - AI Pharma Guard</title>
     <link rel="stylesheet" href="../css/app.css">
 </head>
-<body class="login-page-body">
-    <div class="login-page-shell">
-        <div class="login-brand-block">
-            <div class="login-logo-mark" aria-hidden="true"></div>
-            <h1 class="login-title">AI Pharma Guard</h1>
-            <p class="login-tagline">Acesso seguro ao painel da farmácia</p>
-        </div>
-
-        <div class="card login-card">
-            <h2 class="login-card-heading">Entrar</h2>
-            <p class="login-card-hint">Use o e-mail e a senha cadastrados para sua farmácia.</p>
-
-            <form id="login-form" class="form-stack login-form" novalidate>
-                <div class="input-group">
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" required placeholder="seu@email.com" autocomplete="username" class="login-input">
+<body class="login-page-body login-page-body--v2">
+    <div class="login-page-layout login-page-layout--split">
+        <!-- Coluna esquerda: marca + benefícios -->
+        <aside class="login-brand-panel login-brand-panel--spec" aria-label="Sobre o produto">
+            <div class="login-brand-panel__mesh" aria-hidden="true"></div>
+            <div class="login-brand-panel__inner">
+                <div class="login-brand-logo" aria-hidden="true">
+                    <svg class="login-brand-logo__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" fill="none" aria-hidden="true">
+                        <defs>
+                            <linearGradient id="login-shield-grad" x1="8" y1="4" x2="48" y2="52" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#ffffff" stop-opacity="0.95"/>
+                                <stop offset="1" stop-color="#e0f2fe" stop-opacity="0.9"/>
+                            </linearGradient>
+                        </defs>
+                        <path fill="url(#login-shield-grad)" d="M28 4 8 12v14c0 11.05 7.7 21.35 20 24 12.3-2.65 20-12.95 20-24V12L28 4Z" opacity=".98"/>
+                        <path stroke="rgba(255,255,255,0.85)" stroke-width="1.5" d="M28 4 8 12v14c0 11.05 7.7 21.35 20 24 12.3-2.65 20-12.95 20-24V12L28 4Z"/>
+                        <path stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" d="M28 17v14M21 24h14"/>
+                    </svg>
                 </div>
-                <div class="input-group">
-                    <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="senha" required placeholder="Sua senha" autocomplete="current-password" class="login-input">
-                </div>
-                <div class="login-actions">
-                    <button type="submit" class="btn btn-primary login-submit" id="login-submit">
-                        <span class="login-submit-label">Entrar</span>
-                        <span class="login-submit-loading hidden" aria-hidden="true">Entrando...</span>
-                    </button>
-                </div>
-            </form>
+                <h1 class="login-brand-name">AI Pharma Guard</h1>
+                <p class="login-brand-tagline">Plataforma inteligente para gestão farmacêutica segura</p>
+                <ul class="login-benefits">
+                    <li class="login-benefits__item">
+                        <span class="login-benefits__check" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                        <span>Detecção de interações medicamentosas com IA</span>
+                    </li>
+                    <li class="login-benefits__item">
+                        <span class="login-benefits__check" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                        <span>Gestão multi-farmácia em tempo real</span>
+                    </li>
+                    <li class="login-benefits__item">
+                        <span class="login-benefits__check" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        </span>
+                        <span>Prontuários digitais seguros e auditáveis</span>
+                    </li>
+                </ul>
+                <p class="login-brand-foot">Tecnologia desenvolvida para farmacêuticos</p>
+            </div>
+        </aside>
 
-            <div id="login-alert" class="login-alert hidden" role="alert"></div>
+        <!-- Coluna direita: formulário -->
+        <div class="login-form-panel login-form-panel--white">
+            <div class="login-page-shell">
+                <div class="login-card--premium login-card--v2">
+                    <header class="login-card-header--v2">
+                        <h2 class="login-welcome">Bem-vindo de volta <span class="login-welcome__emoji" aria-hidden="true">👋</span></h2>
+                        <p class="login-subtitle">Entre na sua conta</p>
+                    </header>
 
-            <p class="login-links">
-                <a href="esqueci_senha.html">Esqueceu sua senha?</a>
-            </p>
-            <p class="login-links">
-                Não tem conta? <a href="cadastro.html">Cadastre sua farmácia</a>
-            </p>
-            <p class="login-disclaimer">
-                Ao usar o AI Pharma Guard, você concorda com os
-                <a href="termos.html">Termos de Uso</a>. Ferramenta de apoio farmacêutico.
-            </p>
+                    <form id="login-form" class="login-form login-form--v2" novalidate>
+                        <div class="login-field-v2">
+                            <label class="login-label" for="email">E-mail</label>
+                            <div class="login-input-wrap">
+                                <span class="login-input-wrap__icon" aria-hidden="true">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                                </span>
+                                <input type="email" id="email" name="email" required placeholder="nome@suafarmacia.com.br" autocomplete="username" class="login-input login-input--inset">
+                            </div>
+                        </div>
+
+                        <div class="login-field-v2">
+                            <div class="login-label-row">
+                                <label class="login-label" for="senha">Senha</label>
+                                <a href="esqueci_senha.html" class="login-link-forgot">Esqueceu sua senha?</a>
+                            </div>
+                            <div class="login-input-wrap">
+                                <span class="login-input-wrap__icon" aria-hidden="true">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                                </span>
+                                <input type="password" id="senha" name="senha" required placeholder="Digite sua senha" autocomplete="current-password" class="login-input login-input--inset">
+                                <button type="button" class="login-pass-toggle" id="login-pass-toggle" aria-label="Mostrar senha" aria-pressed="false">
+                                    <!-- olho aberto -->
+                                    <svg class="login-pass-toggle__show" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                    <!-- olho cortado (oculto) -->
+                                    <svg class="login-pass-toggle__hide hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="login-actions login-actions--v2">
+                            <button type="submit" class="btn btn-primary login-submit login-submit--v2" id="login-submit">
+                                <span class="login-submit-idle">
+                                    <span class="login-submit-label">Entrar</span>
+                                </span>
+                                <span class="login-submit-loading hidden" aria-hidden="true">
+                                    <svg class="login-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="32" stroke-dashoffset="12" opacity="0.9"/>
+                                    </svg>
+                                    <span>Entrando...</span>
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+
+                    <div id="login-alert" class="login-alert hidden" role="alert"></div>
+
+                    <div class="login-or-divider" role="presentation">
+                        <span>ou</span>
+                    </div>
+
+                    <div class="login-secondary-cta">
+                        <a href="cadastro.html" class="login-register-link">Cadastrar nova farmácia</a>
+                    </div>
+
+                    <p class="login-disclaimer">
+                        Ao usar o AI Pharma Guard, você concorda com os
+                        <a href="termos.html">Termos de Uso</a>. Ferramenta de apoio farmacêutico.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -55,9 +129,30 @@
         (function () {
             var form = document.getElementById('login-form');
             var btn = document.getElementById('login-submit');
-            var labelOk = btn.querySelector('.login-submit-label');
-            var labelLoad = btn.querySelector('.login-submit-loading');
+            var idle = btn.querySelector('.login-submit-idle');
+            var loading = btn.querySelector('.login-submit-loading');
             var alertEl = document.getElementById('login-alert');
+            var passInput = document.getElementById('senha');
+            var passToggle = document.getElementById('login-pass-toggle');
+            var iconShow = passToggle.querySelector('.login-pass-toggle__show');
+            var iconHide = passToggle.querySelector('.login-pass-toggle__hide');
+
+            passToggle.addEventListener('click', function () {
+                var showing = passInput.getAttribute('type') === 'text';
+                if (showing) {
+                    passInput.setAttribute('type', 'password');
+                    passToggle.setAttribute('aria-label', 'Mostrar senha');
+                    passToggle.setAttribute('aria-pressed', 'false');
+                    iconShow.classList.remove('hidden');
+                    iconHide.classList.add('hidden');
+                } else {
+                    passInput.setAttribute('type', 'text');
+                    passToggle.setAttribute('aria-label', 'Ocultar senha');
+                    passToggle.setAttribute('aria-pressed', 'true');
+                    iconShow.classList.add('hidden');
+                    iconHide.classList.remove('hidden');
+                }
+            });
 
             function showAlert(msg, isError) {
                 alertEl.textContent = msg || '';
@@ -71,14 +166,15 @@
 
             function setLoading(on) {
                 btn.disabled = !!on;
-                labelOk.classList.toggle('hidden', !!on);
-                labelLoad.classList.toggle('hidden', !on);
+                btn.classList.toggle('is-loading', !!on);
+                idle.classList.toggle('hidden', !!on);
+                loading.classList.toggle('hidden', !on);
             }
 
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
                 var email = document.getElementById('email').value.trim();
-                var senha = document.getElementById('senha').value;
+                var senha = passInput.value;
                 showAlert('');
                 setLoading(true);
 
