@@ -29,12 +29,12 @@ if ($nome === '' || $email === '' || $senha === '') {
 $senhaHash = password_hash($senha, PASSWORD_DEFAULT);
 
 try {
-    $stmt = $conn->prepare('INSERT INTO farmacias (nome, email, senha, telefone, ativo) VALUES (?, ?, ?, ?, false)');
+    $stmt = $conn->prepare('INSERT INTO farmacias (nome, email, senha, telefone, ativo) VALUES (?, ?, ?, ?, 0)');
     $stmt->execute([$nome, $email, $senhaHash, $telefone]);
     sendJson(['success' => true, 'message' => 'Farmácia cadastrada com sucesso']);
 } catch (PDOException $e) {
-    // PostgreSQL unique violation
-    if ($e->getCode() === '23505') {
+    // MySQL duplicate key (email único)
+    if (isset($e->errorInfo[1]) && (int) $e->errorInfo[1] === 1062) {
         sendJson(['success' => false, 'message' => 'E-mail já cadastrado.'], 400);
     }
     // Erro genérico de banco

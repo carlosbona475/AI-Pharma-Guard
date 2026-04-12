@@ -62,7 +62,7 @@ try {
     $stmt = $conn->prepare('UPDATE farmacias SET senha = ? WHERE id = ?');
     $stmt->execute([$senhaHash, $farmaciaId]);
 
-    $stmt = $conn->prepare('UPDATE password_resets SET usado = true WHERE id = ?');
+    $stmt = $conn->prepare('UPDATE password_resets SET usado = 1 WHERE id = ?');
     $stmt->execute([(int) $row['id']]);
 } catch (PDOException $e) {
     sendJson(['success' => false, 'message' => 'Erro ao atualizar senha.'], 500);

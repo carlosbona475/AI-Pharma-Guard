@@ -76,13 +76,13 @@ function verificarInteracoes(PDO $conn, $farmacia_id, array $idsMedicamentos) {
         $stmt = $conn->prepare("
             SELECT i.id,
                    i.farmacia_id,
-                   i.medicamento_a AS \"medicamentoA\",
-                   i.medicamento_b AS \"medicamentoB\",
+                   i.medicamento_a AS `medicamentoA`,
+                   i.medicamento_b AS `medicamentoB`,
                    i.tipo_interacao,
                    i.nivel_risco,
                    i.recomendacao,
-                   ma.nome AS \"nomeA\",
-                   mb.nome AS \"nomeB\"
+                   ma.nome AS `nomeA`,
+                   mb.nome AS `nomeB`
             FROM interacoes i
             JOIN medicamentos ma ON ma.id = i.medicamento_a
             JOIN medicamentos mb ON mb.id = i.medicamento_b
@@ -357,9 +357,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['action'] === 'listar_interacoes') {
     try {
         $stmt = $conn->prepare("
-            SELECT i.id, i.farmacia_id, i.medicamento_a AS \"medicamentoA\", i.medicamento_b AS \"medicamentoB\",
+            SELECT i.id, i.farmacia_id, i.medicamento_a AS `medicamentoA`, i.medicamento_b AS `medicamentoB`,
                    i.tipo_interacao, i.nivel_risco, i.recomendacao,
-                   ma.nome AS \"nomeA\", mb.nome AS \"nomeB\"
+                   ma.nome AS `nomeA`, mb.nome AS `nomeB`
             FROM interacoes i
             JOIN medicamentos ma ON ma.id = i.medicamento_a
             JOIN medicamentos mb ON mb.id = i.medicamento_b
@@ -521,7 +521,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
 
     $alertas = [];
     try {
-        $stmt = $conn->prepare('SELECT medicamento_a_nome AS "medicamentoA", medicamento_b_nome AS "medicamentoB", tipo_interacao, nivel_risco, recomendacao FROM interacoes_globais');
+        $stmt = $conn->prepare('SELECT medicamento_a_nome AS `medicamentoA`, medicamento_b_nome AS `medicamentoB`, tipo_interacao, nivel_risco, recomendacao FROM interacoes_globais');
         $stmt->execute();
         $todas = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {

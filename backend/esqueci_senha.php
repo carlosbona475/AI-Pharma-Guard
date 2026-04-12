@@ -52,7 +52,7 @@ $farmaciaId = (int) $row['id'];
 $token = bin2hex(random_bytes(32));
 
 try {
-    $stmt = $conn->prepare('INSERT INTO password_resets (farmacia_id, token, expira_em) VALUES (?, ?, NOW() + INTERVAL \'1 hour\')');
+    $stmt = $conn->prepare('INSERT INTO password_resets (farmacia_id, token, expira_em) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 1 HOUR))');
     $stmt->execute([$farmaciaId, $token]);
 } catch (PDOException $e) {
     sendJson($resposta);

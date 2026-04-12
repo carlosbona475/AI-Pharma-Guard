@@ -1,26 +1,13 @@
 <?php
 function getConnection() {
-    // Tenta connection string completa primeiro (Render/Supabase)
-    $dsn_url = getenv('DATABASE_URL');
-    
-    if ($dsn_url) {
-        $params = parse_url($dsn_url);
-        $host     = $params['host'];
-        $port     = $params['port'] ?? 5432;
-        $dbname   = ltrim($params['path'], '/');
-        $user     = $params['user'];
-        $password = $params['pass'];
-    } else {
-        $host     = getenv('DB_HOST')     ?: 'localhost';
-        $dbname   = getenv('DB_NAME')     ?: 'postgres';
-        $user     = getenv('DB_USER')     ?: 'postgres';
-        $password = getenv('DB_PASSWORD') ?: '';
-        $port     = getenv('DB_PORT')     ?: '5432';
-    }
+    $host = 'localhost';
+    $dbname = 'u632052358_phramguard';
+    $user = 'u632052358_pharmguard1';
+    $password = 'Cn05091@';
 
     try {
         $pdo = new PDO(
-            "pgsql:host={$host};port={$port};dbname={$dbname};sslmode=require",
+            "mysql:host={$host};dbname={$dbname};charset=utf8mb4",
             $user,
             $password,
             [
@@ -35,7 +22,7 @@ function getConnection() {
         header('Content-Type: application/json');
         echo json_encode([
             'success' => false,
-            'message' => 'Erro ao conectar ao banco. Verifique as variáveis de ambiente.',
+            'message' => 'Erro ao conectar ao banco. Verifique a configuração.',
             'debug'   => $e->getMessage()
         ]);
         exit;

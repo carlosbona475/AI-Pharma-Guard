@@ -31,7 +31,7 @@ $action = isset($_GET['action']) ? trim($_GET['action']) : '';
 // ---- Listar farmácias pendentes (ativo = false) ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'listar_pendentes') {
     try {
-        $stmt = $conn->prepare('SELECT id, nome, email, telefone, ativo, aprovado_em FROM farmacias WHERE ativo = false OR ativo IS NULL ORDER BY id');
+        $stmt = $conn->prepare('SELECT id, nome, email, telefone, ativo, aprovado_em FROM farmacias WHERE ativo = 0 OR ativo IS NULL ORDER BY id');
         $stmt->execute();
         $lista = $stmt->fetchAll(PDO::FETCH_ASSOC);
         sendJson(['success' => true, 'farmacias' => $lista, 'total' => count($lista)]);
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'aprovar') {
     }
 
     try {
-        $stmt = $conn->prepare('UPDATE farmacias SET ativo = true, aprovado_em = NOW() WHERE id = ?');
+        $stmt = $conn->prepare('UPDATE farmacias SET ativo = 1, aprovado_em = NOW() WHERE id = ?');
         $stmt->execute([$farmaciaId]);
         if ($stmt->rowCount() === 0) {
             sendJson(['success' => false, 'message' => 'Farmácia não encontrada.'], 404);

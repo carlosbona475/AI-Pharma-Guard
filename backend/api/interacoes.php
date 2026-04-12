@@ -20,13 +20,11 @@ try {
     $conn = getConnection();
 
     $stmt = $conn->query("
-        SELECT EXISTS (
-            SELECT 1 FROM information_schema.tables
-            WHERE table_schema = 'public' AND table_name = 'interacoes'
-        ) AS ok
+        SELECT COUNT(*) AS c FROM information_schema.tables
+        WHERE table_schema = DATABASE() AND table_name = 'interacoes'
     ");
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (empty($row['ok'])) {
+    if (empty($row['c']) || (int) $row['c'] === 0) {
         http_response_code(500);
         echo json_encode(['error' => 'Tabela interacoes não existe no banco.']);
         exit;
@@ -39,8 +37,8 @@ try {
                i.nivel_risco,
                i.tipo_interacao,
                i.recomendacao,
-               ma.nome AS \"nomeA\",
-               mb.nome AS \"nomeB\"
+               ma.nome AS `nomeA`,
+               mb.nome AS `nomeB`
         FROM interacoes i
         JOIN medicamentos ma ON ma.id = i.medicamento_a
         JOIN medicamentos mb ON mb.id = i.medicamento_b
