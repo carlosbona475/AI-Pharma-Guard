@@ -38,6 +38,7 @@
             <p id="login-erro" style="color: var(--risk-severe); margin-top: 8px;"></p>
         </div>
     </main>
+    <script src="../js/fetch-helpers.js"></script>
     <script>
         document.getElementById('login-form').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -46,12 +47,12 @@
             var msgEl = document.getElementById('login-erro');
             msgEl.textContent = '';
 
-            fetch('../backend/login.php', {
+            fetch('/backend/login.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email, senha: senha })
             })
-            .then(function(r) { return r.json(); })
+            .then(parseJsonFetchResponse)
             .then(function(data) {
                 if (data.success) {
                     window.location.href = 'dashboard.html';
@@ -61,7 +62,7 @@
             })
             .catch(function(err) {
                 console.error('Erro no login:', err);
-                msgEl.textContent = 'Erro ao conectar. Verifique se o servidor está rodando.';
+                msgEl.textContent = err.message || 'Erro ao conectar. Verifique se o servidor está rodando.';
             });
         });
     </script>

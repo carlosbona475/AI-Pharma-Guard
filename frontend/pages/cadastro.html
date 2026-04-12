@@ -43,6 +43,7 @@
             <p id="cadastro-msg" style="margin-top: 8px;"></p>
         </div>
     </main>
+    <script src="../js/fetch-helpers.js"></script>
     <script>
         document.getElementById('cadastro-form').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -60,12 +61,12 @@
                 return;
             }
 
-            fetch('../backend/cadastro_farmacia.php', {
+            fetch('/backend/cadastro_farmacia.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ nome: nome, email: email, senha: senha, telefone: telefone })
             })
-            .then(function(r) { return r.json(); })
+            .then(parseJsonFetchResponse)
             .then(function(data) {
                 msgEl.style.color = data.success ? 'var(--risk-none)' : 'var(--risk-severe)';
                 msgEl.textContent = data.message || (data.success ? 'Cadastro realizado.' : 'Erro ao cadastrar.');
@@ -76,7 +77,7 @@
             .catch(function(err) {
                 console.error('Erro no cadastro:', err);
                 msgEl.style.color = 'var(--risk-severe)';
-                msgEl.textContent = 'Erro ao conectar. Verifique se o servidor está rodando.';
+                msgEl.textContent = err.message || 'Erro ao conectar. Verifique se o servidor está rodando.';
             });
         });
     </script>

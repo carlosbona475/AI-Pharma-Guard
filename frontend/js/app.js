@@ -1,161 +1,179 @@
 /**
  * AI Pharma Guard - API e utilitários
- * Chamadas ao backend PHP (MySQL via PDO) — backend/api.php e backend/api/*.php.
+ * Todas as URLs usam caminho absoluto a partir da raiz do site: /backend/...
  *
- * API_BASE: defina window.API_BASE antes de carregar para fixar.
- * Produção (Render): https://SEU-BACKEND.onrender.com/backend
- * Local: origin + '/backend' ou '../../backend'
+ * Para instalar em subpasta (ex.: /meuapp/), defina antes de carregar este script:
+ *   <script>window.API_BASE = '/meuapp/backend';</script>
  */
-(function(global) {
+(function (global) {
     function resolveApiBase() {
-        if (typeof global.API_BASE !== 'undefined' && global.API_BASE !== '') return global.API_BASE.replace(/\/$/, '');
-        try {
-            var origin = global.location && global.location.origin;
-            var pathname = (global.location && global.location.pathname) || '';
-            if (origin && pathname.indexOf('/frontend/') !== -1) return origin + '/backend';
-            if (origin) return origin + '/backend';
-        } catch (e) {}
-        return '../../backend';
+        if (typeof global.API_BASE !== 'undefined' && global.API_BASE !== '') {
+            return String(global.API_BASE).replace(/\/$/, '');
+        }
+        return '/backend';
     }
+
     var API_BASE = resolveApiBase();
     var API = API_BASE + '/api';
 
     function parseResponseAsJson(res, text) {
         var trimmed = (text || '').trim();
         if (!trimmed) {
-            var msg = '[API] Resposta vazia do servidor.';
-            console.error(msg);
-            throw new Error('Resposta vazia do servidor.');
+            console.error('[API] Resposta vazia do servidor. HTTP', res.status, res.url);
+            throw new Error('Resposta vazia do servidor (HTTP ' + res.status + ').');
         }
         if (trimmed.charAt(0) === '<') {
-            var htmlMsg = '[API] Resposta não é JSON (servidor retornou HTML). Verifique URL da API e se o PHP está em execução. Amostra: ' + trimmed.slice(0, 120) + (trimmed.length > 120 ? '...' : '');
-            console.error(htmlMsg);
+            console.error(
+                '[API] Resposta não é JSON (HTML recebido). HTTP',
+                res.status,
+                res.url,
+                trimmed.slice(0, 200)
+            );
             throw new Error(
-                'O servidor retornou HTML em vez de JSON. Verifique a URL da API e se o PHP está em execução. Detalhes no console.'
+                'Erro HTTP ' +
+                    res.status +
+                    ': o servidor retornou HTML em vez de JSON. Verifique se a URL /backend está correta e se o PHP está acessível.'
             );
         }
         try {
             return JSON.parse(trimmed);
         } catch (e) {
-            var invalidMsg = '[API] Resposta não é JSON válido. Amostra: ' + trimmed.slice(0, 150) + (trimmed.length > 150 ? '...' : '');
-            console.error(invalidMsg, e);
-            if (e instanceof SyntaxError) {
-                throw new Error('Resposta inválida do servidor (não é JSON). Detalhes no console.');
-            }
-            throw new Error('Resposta inválida do servidor. Detalhes no console.');
+            console.error('[API] JSON inválido. Amostra:', trimmed.slice(0, 200), e);
+            throw new Error('Resposta inválida do servidor (não é JSON). HTTP ' + res.status + '.');
         }
+    }
+
+    /**
+     * fetch + validação HTTP + parse JSON seguro (evita "Unexpected token '<'").
+     */
+    function fetchJson(url, fetchOpts) {
+        return fetch(url, fetchOpts || {})
+            .then(function (res) {
+                return res.text().then(function (text) {
+                    var data;
+                    try {
+                        data = parseResponseAsJson(res, text);
+                    } catch (parseErr) {
+                        if (!res.ok) {
+                            throw new Error(
+                                'Erro HTTP ' + res.status + ': ' + (parseErr.message || 'Falha na resposta.')
+                            );
+                        }
+                        throw parseErr;
+                    }
+                    if (!res.ok) {
+                        var msg =
+                            (data && (data.error || data.message)) ||
+                            'Erro HTTP ' + res.status;
+                        console.error('[API]', res.status, url, data || text);
+                        throw new Error(msg);
+                    }
+                    return data;
+                });
+            })
+            .catch(function (err) {
+                console.error('[API] Falha na requisição:', url, err);
+                if (err instanceof TypeError && err.message && err.message.indexOf('fetch') !== -1) {
+                    throw new Error(
+                        'Não foi possível conectar à API. Verifique o servidor e a URL base (' + API_BASE + ').'
+                    );
+                }
+                throw err;
+            });
     }
 
     function request(method, action, body) {
         var url = API_BASE + '/api.php?action=' + encodeURIComponent(action);
         var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
-        if (body && (method === 'POST' || method === 'PUT')) opts.body = JSON.stringify(body);
-        return fetch(url, opts)
-            .then(function(res) {
-                return res.text().then(function(text) {
-                    var data = parseResponseAsJson(res, text);
-                    if (!res.ok) {
-                        var statusMsg = '[API] Erro HTTP ' + res.status + ': ' + (data.error || text);
-                        console.error(statusMsg);
-                        throw new Error(data.error || 'Erro ' + res.status);
-                    }
-                    return data;
-                });
-            })
-            .catch(function(err) {
-                console.error('[API] Falha na requisição:', err.message, err);
-                if (err.message && (err.message.indexOf('JSON') !== -1 || err.message.indexOf('HTML') !== -1 || err.message.indexOf('Resposta') !== -1)) {
-                    throw err;
-                }
-                if (err instanceof TypeError && err.message.indexOf('fetch') !== -1) {
-                    var netMsg = 'Não foi possível conectar à API. Verifique o servidor e a URL (API_BASE).';
-                    console.error('[API] ' + netMsg);
-                    throw new Error(netMsg);
-                }
-                throw err;
-            });
+        if (body && (method === 'POST' || method === 'PUT')) {
+            opts.body = JSON.stringify(body);
+        }
+        return fetchJson(url, opts);
     }
 
     var api = {
-        getEstatisticas: function() {
-            return fetch(API + '/dashboard.php').then(function(res) {
-                return res.text().then(function(text) {
-                    var data = parseResponseAsJson(res, text);
-                    if (!res.ok) throw new Error(data.error || data.message || 'Erro ao carregar dashboard');
-                    return {
-                        pacientes: data.total_pacientes,
-                        medicamentos: data.total_medicamentos,
-                        interacoes_cadastradas: data.total_interacoes
-                    };
-                });
-            }).catch(function(err) {
-                console.error('[API] getEstatisticas:', err);
-                throw err;
+        getEstatisticas: function () {
+            return fetchJson(API + '/dashboard.php', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            }).then(function (data) {
+                return {
+                    pacientes: data.total_pacientes,
+                    medicamentos: data.total_medicamentos,
+                    interacoes_cadastradas: data.total_interacoes,
+                };
             });
         },
-        listarPacientes: function(page, limit) {
-            if (typeof page === 'number' && page >= 1 && typeof limit === 'number' && limit >= 1) {
-                var url = API_BASE + '/api.php?action=listar_pacientes&page=' + encodeURIComponent(page) + '&limit=' + encodeURIComponent(limit);
-                return fetch(url, { method: 'GET', headers: { 'Content-Type': 'application/json' } })
-                    .then(function(res) {
-                        return res.text().then(function(text) {
-                            var data = parseResponseAsJson(res, text);
-                            if (!res.ok) throw new Error(data.error || 'Erro ao listar pacientes');
-                            return data;
-                        });
-                    })
-                    .catch(function(err) { console.error('[API] listarPacientes:', err); throw err; });
+
+        listarPacientes: function (page, limit) {
+            if (
+                typeof page === 'number' &&
+                page >= 1 &&
+                typeof limit === 'number' &&
+                limit >= 1
+            ) {
+                var url =
+                    API_BASE +
+                    '/api.php?action=listar_pacientes&page=' +
+                    encodeURIComponent(page) +
+                    '&limit=' +
+                    encodeURIComponent(limit);
+                return fetchJson(url, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
             }
             return request('GET', 'listar_pacientes');
         },
-        verificarAlergia: function(pacienteId, medicamentoNome) {
+
+        verificarAlergia: function (pacienteId, medicamentoNome) {
             return request('POST', 'verificar_alergia', {
                 paciente_id: pacienteId,
-                medicamento_nome: medicamentoNome
+                medicamento_nome: medicamentoNome,
             });
         },
-        cadastrarPaciente: function(data) {
+
+        cadastrarPaciente: function (data) {
             return request('POST', 'cadastrar_paciente', data);
         },
-        listarMedicamentos: function() {
-            return fetch(API + '/medicamentos.php').then(function(res) {
-                return res.text().then(function(text) {
-                    var data = parseResponseAsJson(res, text);
-                    if (!res.ok) throw new Error(data.error || data.message || 'Erro ao carregar medicamentos');
-                    return Array.isArray(data) ? data : [];
-                });
-            }).catch(function(err) {
-                console.error('[API] listarMedicamentos:', err);
-                throw err;
+
+        listarMedicamentos: function () {
+            return fetchJson(API + '/medicamentos.php', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            }).then(function (data) {
+                return Array.isArray(data) ? data : [];
             });
         },
-        cadastrarMedicamento: function(data) {
+
+        cadastrarMedicamento: function (data) {
             return request('POST', 'cadastrar_medicamento', data);
         },
-        verificarInteracoes: function(medicamentos) {
+
+        verificarInteracoes: function (medicamentos) {
             return request('POST', 'verificar_interacoes', { medicamentos: medicamentos });
         },
-        listarInteracoes: function() {
-            return fetch(API + '/interacoes.php').then(function(res) {
-                return res.text().then(function(text) {
-                    var data = parseResponseAsJson(res, text);
-                    if (!res.ok) throw new Error(data.error || data.message || 'Erro ao carregar interações');
-                    return Array.isArray(data) ? data : [];
-                });
-            }).catch(function(err) {
-                console.error('[API] listarInteracoes:', err);
-                throw err;
+
+        listarInteracoes: function () {
+            return fetchJson(API + '/interacoes.php', {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' },
+            }).then(function (data) {
+                return Array.isArray(data) ? data : [];
             });
         },
-        cadastrarInteracao: function(data) {
+
+        cadastrarInteracao: function (data) {
             return request('POST', 'cadastrar_interacao', data);
         },
-        analisarRiscoPaciente: function(pacienteId) {
+
+        analisarRiscoPaciente: function (pacienteId) {
             return request('POST', 'analisar_risco_paciente', { paciente_id: pacienteId });
         },
-        verificarInteracoesPaciente: function(opts) {
+
+        verificarInteracoesPaciente: function (opts) {
             return request('POST', 'verificar_interacoes_paciente', opts);
-        }
+        },
     };
 
     function escapeHtml(str) {
@@ -167,4 +185,6 @@
 
     global.api = api;
     global.escapeHtml = escapeHtml;
+    /** Exposto para debug e testes */
+    global.API_BASE_RESOLVED = API_BASE;
 })(typeof window !== 'undefined' ? window : this);

@@ -299,9 +299,26 @@
 
             // Exportar prontuário em PDF via jsPDF (dados buscados na API)
             window.exportarPDF = function(pacienteId) {
-                var apiUrl = '../backend/api.php?action=buscar_paciente&id=' + encodeURIComponent(pacienteId);
+                var apiUrl = '/backend/api.php?action=buscar_paciente&id=' + encodeURIComponent(pacienteId);
                 fetch(apiUrl, { method: 'GET', credentials: 'same-origin' })
-                    .then(function(r) { return r.json(); })
+                    .then(function(r) {
+                        return r.text().then(function(text) {
+                            var t = (text || '').trim();
+                            if (t.charAt(0) === '<') {
+                                throw new Error('Resposta HTML (HTTP ' + r.status + '). Verifique /backend/api.php.');
+                            }
+                            var data;
+                            try {
+                                data = JSON.parse(t);
+                            } catch (e) {
+                                throw new Error('Resposta não é JSON válido (HTTP ' + r.status + ').');
+                            }
+                            if (!r.ok) {
+                                throw new Error((data && (data.message || data.error)) || ('Erro HTTP ' + r.status));
+                            }
+                            return data;
+                        });
+                    })
                     .then(function(data) {
                         if (!data.success || !data.paciente) {
                             alert(data.message || 'Paciente não encontrado.');

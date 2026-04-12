@@ -28,6 +28,7 @@
             <p id="msg" style="margin-top: 12px;"></p>
         </div>
     </main>
+    <script src="../js/fetch-helpers.js"></script>
     <script>
         document.getElementById('form-esqueci').addEventListener('submit', function (e) {
             e.preventDefault();
@@ -35,12 +36,12 @@
             var msgEl = document.getElementById('msg');
             msgEl.textContent = '';
 
-            fetch('../backend/esqueci_senha.php', {
+            fetch('/backend/esqueci_senha.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: email })
             })
-            .then(function(r) { return r.json(); })
+            .then(parseJsonFetchResponse)
             .then(function(data) {
                 msgEl.style.color = data.success ? 'var(--risk-none)' : 'var(--risk-severe)';
                 msgEl.textContent = data.message || (data.success ? 'Verifique seu e-mail.' : 'Erro ao enviar.');
@@ -48,7 +49,7 @@
             .catch(function(err) {
                 console.error('Erro:', err);
                 msgEl.style.color = 'var(--risk-severe)';
-                msgEl.textContent = 'Erro ao conectar. Verifique se o servidor está rodando.';
+                msgEl.textContent = err.message || 'Erro ao conectar. Verifique se o servidor está rodando.';
             });
         });
     </script>
