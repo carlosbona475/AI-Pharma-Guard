@@ -4,123 +4,551 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Farmácia - AI Pharma Guard</title>
-    <link rel="stylesheet" href="../css/app.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 16px;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f172a;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .bg-glow-1,
+        .bg-glow-2,
+        .bg-glow-3 {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .bg-glow-1 {
+            width: min(480px, 100vw);
+            height: min(480px, 100vw);
+            top: -200px;
+            left: -200px;
+            background: rgba(44, 93, 140, 0.15);
+            filter: blur(80px);
+        }
+
+        .bg-glow-2 {
+            width: min(480px, 100vw);
+            height: min(480px, 100vw);
+            bottom: -200px;
+            right: -200px;
+            background: rgba(61, 125, 110, 0.12);
+            filter: blur(80px);
+        }
+
+        .bg-glow-3 {
+            width: min(560px, 110vw);
+            height: min(560px, 110vw);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(148, 163, 184, 0.12) 0%, transparent 65%);
+            filter: blur(72px);
+            opacity: 0.85;
+        }
+
+        .lp-card {
+            position: relative;
+            z-index: 1;
+            width: 90%;
+            max-width: 420px;
+            padding: 40px 36px;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.06);
+            animation: slideUp 0.5s ease;
+        }
+
+        .cad-back {
+            display: block;
+            margin: 0 0 16px;
+            text-align: center;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #2c5d8c;
+            text-decoration: none;
+        }
+
+        .cad-back:hover {
+            text-decoration: underline;
+            color: #234a6e;
+        }
+
+        .lp-brand {
+            text-align: center;
+        }
+
+        .lp-logo {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .lp-title-brand {
+            margin: 12px 0 0;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+
+        .lp-badge {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 3px 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #0369a1;
+            background: #f0f9ff;
+            border-radius: 20px;
+            border: 1px solid #bae6fd;
+        }
+
+        .lp-rule {
+            border-top: 1px solid #f1f5f9;
+            margin: 24px 0;
+        }
+
+        .lp-heading-main {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            line-height: 1.25;
+        }
+
+        .lp-heading-sub {
+            margin: 4px 0 0;
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .lp-form {
+            margin-top: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .lp-field label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .lp-label-optional {
+            font-weight: 500;
+            color: #94a3b8;
+        }
+
+        .lp-input-wrap {
+            position: relative;
+        }
+
+        .lp-input-wrap--pwd .lp-input {
+            padding-right: 44px;
+        }
+
+        .lp-ico {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #94a3b8;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lp-ico svg {
+            width: 16px;
+            height: 16px;
+            display: block;
+        }
+
+        .lp-input {
+            width: 100%;
+            padding: 13px 14px 13px 42px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #0f172a;
+            background: #fafafa;
+            font-family: inherit;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .lp-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .lp-input:hover {
+            border-color: #cbd5e1;
+            background: #fff;
+        }
+
+        .lp-input:focus {
+            outline: none;
+            border-color: #2c5d8c;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(44, 93, 140, 0.15);
+        }
+
+        .lp-toggle {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .lp-toggle:hover {
+            background: #f1f5f9;
+            color: #2c5d8c;
+        }
+
+        .lp-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .cadastro-pw-meter {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .cadastro-pw-meter__bars {
+            display: flex;
+            gap: 6px;
+            height: 4px;
+        }
+
+        .cadastro-pw-meter__bar {
+            flex: 1;
+            border-radius: 999px;
+            background: #e2e8f0;
+            transition: background 0.2s ease;
+        }
+
+        .cadastro-pw-meter__bar--on {
+            background: #cbd5e1;
+        }
+
+        .cadastro-pw-meter[data-strength='1'] .cadastro-pw-meter__bar--on {
+            background: #f87171;
+        }
+
+        .cadastro-pw-meter[data-strength='2'] .cadastro-pw-meter__bar--on {
+            background: #fbbf24;
+        }
+
+        .cadastro-pw-meter[data-strength='3'] .cadastro-pw-meter__bar--on {
+            background: #4a7eb0;
+        }
+
+        .cadastro-pw-meter[data-strength='4'] .cadastro-pw-meter__bar--on {
+            background: #3d7d6e;
+        }
+
+        .cadastro-pw-meter__hint {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #64748b;
+        }
+
+        .cadastro-match-hint {
+            margin: 6px 0 0;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #dc2626;
+        }
+
+        .cadastro-terms {
+            margin: 2px 0 0;
+        }
+
+        .cadastro-terms__label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: #475569;
+        }
+
+        .cadastro-terms__label input[type='checkbox'] {
+            margin-top: 3px;
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            accent-color: #2c5d8c;
+        }
+
+        .cadastro-terms__label a {
+            color: #2c5d8c;
+            font-weight: 600;
+        }
+
+        .lp-actions {
+            margin-top: 8px;
+        }
+
+        .lp-submit {
+            width: 100%;
+            min-height: 48px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            color: #fff;
+            background: linear-gradient(180deg, #3d7d6e 0%, #2c5d8c 55%, #234a6e 100%);
+            box-shadow:
+                0 1px 2px rgba(0, 0, 0, 0.12),
+                0 8px 24px rgba(44, 93, 140, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .lp-submit:hover:not(:disabled) {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                0 12px 32px rgba(44, 93, 140, 0.4);
+        }
+
+        .lp-submit:active:not(:disabled) {
+            transform: translateY(0);
+            filter: brightness(0.98);
+        }
+
+        .lp-submit:disabled {
+            opacity: 0.75;
+            cursor: wait;
+        }
+
+        .cadastro-footer-line {
+            margin: 24px 0 0;
+            text-align: center;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .cadastro-footer-line__link {
+            font-weight: 600;
+            color: #2c5d8c;
+            text-decoration: none;
+        }
+
+        .cadastro-footer-line__link:hover {
+            text-decoration: underline;
+            color: #234a6e;
+        }
+
+        .cadastro-msg {
+            margin: 16px 0 0;
+            font-size: 0.875rem;
+            font-weight: 500;
+            line-height: 1.45;
+            text-align: center;
+        }
+
+        .cadastro-msg--ok {
+            color: #15803d;
+        }
+
+        .cadastro-msg--err {
+            color: #dc2626;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 400px) {
+            .lp-card {
+                padding: 36px 24px;
+            }
+        }
+    </style>
 </head>
-<body class="cadastro-page-body">
-    <div class="cadastro-page">
-        <header class="cadastro-page__header">
-            <div class="cadastro-page__brand">
-                <span class="cadastro-page__logo" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                        <defs>
-                            <linearGradient id="cadastro-sh-grad" x1="4" y1="2" x2="20" y2="22" gradientUnits="userSpaceOnUse">
-                                <stop stop-color="#4a7eb0"/>
-                                <stop offset="1" stop-color="#2c5d8c"/>
-                            </linearGradient>
-                        </defs>
-                        <path fill="url(#cadastro-sh-grad)" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
-                        <path fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
-                        <path stroke="#fff" stroke-width="1.8" stroke-linecap="round" d="M12 9v6M9 12h6"/>
-                    </svg>
-                </span>
-                <span class="cadastro-page__brand-name">AI Pharma Guard</span>
+<body>
+    <div class="bg-glow-1" aria-hidden="true"></div>
+    <div class="bg-glow-2" aria-hidden="true"></div>
+    <div class="bg-glow-3" aria-hidden="true"></div>
+
+    <div class="lp-card">
+        <a href="login.html" class="cad-back">← Voltar ao login</a>
+
+        <div class="lp-brand">
+            <svg class="lp-logo" width="52" height="52" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <defs>
+                    <linearGradient id="cad-shield-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stop-color="#2c5d8c"/>
+                        <stop offset="1" stop-color="#3d7d6e"/>
+                    </linearGradient>
+                </defs>
+                <path fill="url(#cad-shield-grad)" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                <path fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                <path stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" d="M12 9v6M9 12h6"/>
+            </svg>
+            <h1 class="lp-title-brand">AI Pharma Guard</h1>
+            <span class="lp-badge">Plataforma Farmacêutica</span>
+        </div>
+
+        <div class="lp-rule" role="presentation"></div>
+
+        <div>
+            <h2 class="lp-heading-main">Criar conta gratuita</h2>
+            <p class="lp-heading-sub">Preencha os dados da sua farmácia</p>
+        </div>
+
+        <form id="cadastro-form" class="lp-form" novalidate>
+            <div class="lp-field">
+                <label for="nome">Nome da farmácia</label>
+                <div class="lp-input-wrap">
+                    <span class="lp-ico" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v14h16V7l-8-4Z"/><path d="M9 21v-6h6v6"/><path d="M12 10v4M10 12h4"/></svg>
+                    </span>
+                    <input type="text" id="nome" name="nome" required placeholder="Nome fantasia ou razão social" autocomplete="organization" class="lp-input">
+                </div>
             </div>
-            <a href="login.html" class="cadastro-page__back">← Voltar ao login</a>
-        </header>
 
-        <div class="cadastro-card">
-            <h1 class="cadastro-card__title">Criar conta gratuita</h1>
-            <p class="cadastro-card__subtitle">Preencha os dados da sua farmácia</p>
-
-            <form id="cadastro-form" class="cadastro-form" novalidate>
-                <div class="cadastro-field">
-                    <label class="cadastro-label" for="nome">Nome da farmácia</label>
-                    <div class="cadastro-input-wrap">
-                        <span class="cadastro-input-wrap__icon" aria-hidden="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 7v14h16V7l-8-4Z"/><path d="M9 21v-6h6v6"/><path d="M12 10v4M10 12h4"/></svg>
-                        </span>
-                        <input type="text" id="nome" name="nome" required placeholder="Nome fantasia ou razão social" autocomplete="organization" class="cadastro-input cadastro-input--inset">
-                    </div>
+            <div class="lp-field">
+                <label for="email">E-mail</label>
+                <div class="lp-input-wrap">
+                    <span class="lp-ico" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                    </span>
+                    <input type="email" id="email" name="email" required placeholder="contato@suafarmacia.com.br" autocomplete="email" class="lp-input">
                 </div>
+            </div>
 
-                <div class="cadastro-field">
-                    <label class="cadastro-label" for="email">E-mail</label>
-                    <div class="cadastro-input-wrap">
-                        <span class="cadastro-input-wrap__icon" aria-hidden="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                        </span>
-                        <input type="email" id="email" name="email" required placeholder="contato@suafarmacia.com.br" autocomplete="email" class="cadastro-input cadastro-input--inset">
-                    </div>
+            <div class="lp-field">
+                <label for="telefone">Telefone <span class="lp-label-optional">(opcional)</span></label>
+                <div class="lp-input-wrap">
+                    <span class="lp-ico" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    </span>
+                    <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" autocomplete="tel" class="lp-input">
                 </div>
+            </div>
 
-                <div class="cadastro-field">
-                    <label class="cadastro-label" for="telefone">Telefone <span class="cadastro-label--optional">(opcional)</span></label>
-                    <div class="cadastro-input-wrap">
-                        <span class="cadastro-input-wrap__icon" aria-hidden="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        </span>
-                        <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000" autocomplete="tel" class="cadastro-input cadastro-input--inset">
-                    </div>
-                </div>
-
-                <div class="cadastro-field">
-                    <label class="cadastro-label" for="senha">Senha</label>
-                    <div class="cadastro-input-wrap">
-                        <span class="cadastro-input-wrap__icon" aria-hidden="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        </span>
-                        <input type="password" id="senha" name="senha" required placeholder="Mínimo 8 caracteres" autocomplete="new-password" class="cadastro-input cadastro-input--inset" minlength="8">
-                        <button type="button" class="cadastro-pass-toggle" id="cadastro-pass-toggle" aria-label="Mostrar senha" aria-pressed="false">
-                            <svg class="cadastro-pass-toggle__show" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <svg class="cadastro-pass-toggle__hide hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                        </button>
-                    </div>
-                    <div class="cadastro-pw-meter" id="cadastro-pw-meter" data-strength="0" aria-live="polite">
-                        <div class="cadastro-pw-meter__bars">
-                            <span class="cadastro-pw-meter__bar"></span>
-                            <span class="cadastro-pw-meter__bar"></span>
-                            <span class="cadastro-pw-meter__bar"></span>
-                            <span class="cadastro-pw-meter__bar"></span>
-                        </div>
-                        <span class="cadastro-pw-meter__hint" id="cadastro-pw-hint">Força da senha</span>
-                    </div>
-                </div>
-
-                <div class="cadastro-field">
-                    <label class="cadastro-label" for="senha-confirmar">Confirmar senha</label>
-                    <div class="cadastro-input-wrap">
-                        <span class="cadastro-input-wrap__icon" aria-hidden="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                        </span>
-                        <input type="password" id="senha-confirmar" name="senha-confirmar" required placeholder="Repita a senha" autocomplete="new-password" class="cadastro-input cadastro-input--inset">
-                        <button type="button" class="cadastro-pass-toggle" id="cadastro-confirm-toggle" aria-label="Mostrar confirmação de senha" aria-pressed="false">
-                            <svg class="cadastro-pass-toggle__show" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                            <svg class="cadastro-pass-toggle__hide hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                        </button>
-                    </div>
-                    <p class="cadastro-match-hint hidden" id="cadastro-match-hint" role="alert">As senhas não coincidem.</p>
-                </div>
-
-                <div class="cadastro-terms">
-                    <label class="cadastro-terms__label">
-                        <input type="checkbox" id="aceite-termos" required>
-                        <span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener noreferrer">Termos de Uso</a> do AI Pharma Guard.</span>
-                    </label>
-                </div>
-
-                <div class="cadastro-actions">
-                    <button type="submit" class="btn btn-primary cadastro-submit" id="cadastro-submit">
-                        <span class="cadastro-submit-idle">Criar conta</span>
-                        <span class="cadastro-submit-loading hidden" aria-hidden="true">Cadastrando...</span>
+            <div class="lp-field">
+                <label for="senha">Senha</label>
+                <div class="lp-input-wrap lp-input-wrap--pwd">
+                    <span class="lp-ico" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </span>
+                    <input type="password" id="senha" name="senha" required placeholder="Mínimo 8 caracteres" autocomplete="new-password" class="lp-input" minlength="8">
+                    <button type="button" class="lp-toggle" id="cadastro-pass-toggle" aria-label="Mostrar senha" aria-pressed="false">
+                        <svg class="cadastro-pass-toggle__show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg class="cadastro-pass-toggle__hide hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
                     </button>
                 </div>
-            </form>
+                <div class="cadastro-pw-meter" id="cadastro-pw-meter" data-strength="0" aria-live="polite">
+                    <div class="cadastro-pw-meter__bars">
+                        <span class="cadastro-pw-meter__bar"></span>
+                        <span class="cadastro-pw-meter__bar"></span>
+                        <span class="cadastro-pw-meter__bar"></span>
+                        <span class="cadastro-pw-meter__bar"></span>
+                    </div>
+                    <span class="cadastro-pw-meter__hint" id="cadastro-pw-hint">Força da senha</span>
+                </div>
+            </div>
 
-            <p class="cadastro-footer-line">
-                Já tem conta? <a href="login.html" class="cadastro-footer-line__link">Faça login</a>
-            </p>
-            <p id="cadastro-msg" class="cadastro-msg" role="status"></p>
-        </div>
+            <div class="lp-field">
+                <label for="senha-confirmar">Confirmar senha</label>
+                <div class="lp-input-wrap lp-input-wrap--pwd">
+                    <span class="lp-ico" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </span>
+                    <input type="password" id="senha-confirmar" name="senha-confirmar" required placeholder="Repita a senha" autocomplete="new-password" class="lp-input">
+                    <button type="button" class="lp-toggle" id="cadastro-confirm-toggle" aria-label="Mostrar confirmação de senha" aria-pressed="false">
+                        <svg class="cadastro-pass-toggle__show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                        <svg class="cadastro-pass-toggle__hide hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                    </button>
+                </div>
+                <p class="cadastro-match-hint hidden" id="cadastro-match-hint" role="alert">As senhas não coincidem.</p>
+            </div>
+
+            <div class="cadastro-terms">
+                <label class="cadastro-terms__label">
+                    <input type="checkbox" id="aceite-termos" required>
+                    <span>Li e aceito os <a href="termos.html" target="_blank" rel="noopener noreferrer">Termos de Uso</a> do AI Pharma Guard.</span>
+                </label>
+            </div>
+
+            <div class="lp-actions">
+                <button type="submit" class="lp-submit" id="cadastro-submit">
+                    <span class="cadastro-submit-idle">Criar conta</span>
+                    <span class="cadastro-submit-loading hidden" aria-hidden="true">Cadastrando...</span>
+                </button>
+            </div>
+        </form>
+
+        <p class="cadastro-footer-line">
+            Já tem conta? <a href="login.html" class="cadastro-footer-line__link">Faça login</a>
+        </p>
+        <p id="cadastro-msg" class="cadastro-msg" role="status"></p>
     </div>
 
     <script src="../js/fetch-helpers.js"></script>
