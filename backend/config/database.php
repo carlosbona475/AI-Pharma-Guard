@@ -62,4 +62,43 @@ function ensurePacientesTable(PDO $conn) {
             throw $e;
         }
     }
+    try {
+        $conn->exec("ALTER TABLE pacientes ADD COLUMN peso DECIMAL(5,2) NULL COMMENT 'kg' AFTER sexo");
+    } catch (PDOException $e) {
+        if (!isset($e->errorInfo[1]) || (int) $e->errorInfo[1] !== 1060) {
+            throw $e;
+        }
+    }
+    try {
+        $conn->exec("ALTER TABLE pacientes ADD COLUMN altura INT NULL COMMENT 'cm' AFTER peso");
+    } catch (PDOException $e) {
+        if (!isset($e->errorInfo[1]) || (int) $e->errorInfo[1] !== 1060) {
+            throw $e;
+        }
+    }
+}
+
+/**
+ * Colunas extras em medicamentos para a calculadora de dose (idempotente).
+ */
+function ensureMedicamentosCalculadoraColumns(PDO $conn) {
+    $stmts = [
+        "ALTER TABLE medicamentos ADD COLUMN dose_mg_kg DECIMAL(8,3) NULL COMMENT 'dose em mg por kg do paciente'",
+        "ALTER TABLE medicamentos ADD COLUMN dose_minima DECIMAL(8,2) NULL COMMENT 'mg'",
+        "ALTER TABLE medicamentos ADD COLUMN dose_maxima DECIMAL(8,2) NULL COMMENT 'mg'",
+        'ALTER TABLE medicamentos ADD COLUMN dose_adulto VARCHAR(100) NULL',
+        'ALTER TABLE medicamentos ADD COLUMN dose_pediatrica VARCHAR(100) NULL',
+        'ALTER TABLE medicamentos ADD COLUMN dose_geriatrica VARCHAR(100) NULL',
+        "ALTER TABLE medicamentos ADD COLUMN idade_minima INT NULL COMMENT 'anos'",
+        'ALTER TABLE medicamentos ADD COLUMN via_administracao VARCHAR(50) NULL',
+    ];
+    foreach ($stmts as $sql) {
+        try {
+            $conn->exec($sql);
+        } catch (PDOException $e) {
+            if (!isset($e->errorInfo[1]) || (int) $e->errorInfo[1] !== 1060) {
+                throw $e;
+            }
+        }
+    }
 }

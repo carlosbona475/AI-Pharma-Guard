@@ -5,6 +5,266 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Relatórios - AI Pharma Guard</title>
     <link rel="stylesheet" href="../css/app.css">
+    <style>
+        /* Módulo Polifarmácia (inline) */
+        .poly-wrap {
+            margin-top: 8px;
+        }
+
+        .poly-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .poly-title-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .poly-title {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-title, #0f172a);
+            letter-spacing: -0.02em;
+        }
+
+        .poly-badge-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 26px;
+            height: 26px;
+            padding: 0 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(180deg, #3d7d6e 0%, #2c5d8c 100%);
+            border-radius: 999px;
+        }
+
+        .poly-desc {
+            margin: 0 0 16px;
+            font-size: 0.875rem;
+            color: var(--text-muted, #64748b);
+            line-height: 1.55;
+            max-width: 720px;
+        }
+
+        .poly-alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 14px 16px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            background: #fef9c3;
+            border: 1px solid #fde047;
+            color: #854d0e;
+            font-size: 0.875rem;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .poly-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .poly-btn-pdf {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 40px;
+            padding: 0 18px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            color: #fff;
+            background: linear-gradient(180deg, #3d7d6e 0%, #2c5d8c 55%, #234a6e 100%);
+            box-shadow: 0 4px 14px rgba(44, 93, 140, 0.35);
+        }
+
+        .poly-btn-pdf:hover {
+            filter: brightness(1.06);
+        }
+
+        .poly-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 48px 24px;
+            color: var(--text-muted, #64748b);
+            font-size: 0.875rem;
+        }
+
+        .poly-spinner {
+            width: 40px;
+            height: 40px;
+            animation: poly-spin 0.75s linear infinite;
+        }
+
+        @keyframes poly-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .poly-empty {
+            padding: 28px 24px;
+            border-radius: 12px;
+            text-align: center;
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #166534;
+            font-size: 0.9375rem;
+            font-weight: 600;
+        }
+
+        .poly-table-wrap {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid var(--border-subtle, #e2e8f0);
+        }
+
+        .poly-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .poly-table thead th {
+            text-align: left;
+            padding: 12px 14px;
+            background: var(--surface-2, #f8fafc);
+            color: var(--text-muted, #64748b);
+            font-size: 0.72rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .poly-table tbody td {
+            padding: 14px;
+            border-top: 1px solid var(--border-subtle, #e2e8f0);
+            vertical-align: top;
+            color: var(--text-body, #334155);
+        }
+
+        .poly-table tbody tr:hover td {
+            background: rgba(44, 93, 140, 0.04);
+        }
+
+        .poly-meds {
+            max-width: 320px;
+            font-size: 0.8125rem;
+            line-height: 1.45;
+            word-break: break-word;
+        }
+
+        .poly-risk {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.06em;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+
+        .poly-risk--alto {
+            background: rgba(217, 119, 6, 0.15);
+            color: #d97706;
+            border: 1px solid rgba(217, 119, 6, 0.35);
+        }
+
+        .poly-risk--muito {
+            background: rgba(220, 38, 38, 0.15);
+            color: #dc2626;
+            border: 1px solid rgba(220, 38, 38, 0.35);
+            animation: poly-pulse 1.4s ease-in-out infinite;
+        }
+
+        @keyframes poly-pulse {
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.35);
+            }
+            50% {
+                box-shadow: 0 0 0 6px rgba(220, 38, 38, 0);
+            }
+        }
+
+        .poly-btn-pront {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: #fff;
+            background: linear-gradient(180deg, #3d7d6e 0%, #2c5d8c 100%);
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: filter 0.15s ease;
+        }
+
+        .poly-btn-pront:hover {
+            filter: brightness(1.08);
+        }
+
+        .poly-err {
+            padding: 14px 16px;
+            border-radius: 10px;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        @media print {
+            .app-topbar,
+            .app-sidebar,
+            .app-overlay,
+            .sidebar-toggle,
+            .poly-no-print {
+                display: none !important;
+            }
+
+            .app-main {
+                margin-left: 0 !important;
+                padding: 16px !important;
+            }
+
+            body {
+                background: #fff !important;
+            }
+
+            .card {
+                box-shadow: none !important;
+                border: 1px solid #e2e8f0 !important;
+            }
+        }
+    </style>
 </head>
 <body>
     <header class="app-topbar">
@@ -75,6 +335,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="calculadora.html">
+                        <span class="nav-link-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 2 4 4"/><path d="m17 7-5 5"/><path d="m3 21 4-4"/><path d="m14 10-4 4"/><path d="m10 6 4-4 2 2-4 4"/><path d="m6 10-2 2"/></svg></span>
+                        <span>Calculadora</span>
+                    </a>
+                </li>
+                <li>
                     <a href="relatorios.html" class="active">
                         <span class="nav-link-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="14" y2="17"/></svg></span>
                         <span>Relatórios</span>
@@ -95,17 +361,131 @@
     <main class="app-main">
         <h1 class="page-title">Relatórios</h1>
 
-        <div class="card">
-            <h3>Relatórios disponíveis</h3>
-            <p style="color: var(--text-muted); margin-bottom: 20px;">Selecione um relatório para visualizar ou exportar.</p>
-            <div class="reports-placeholder">
-                <p>Use o <strong>Dashboard</strong> para estatísticas gerais.</p>
-                <p>As listas de <strong>Pacientes</strong> e <strong>Medicamentos</strong> estão disponíveis nas respectivas páginas.</p>
-                <p style="margin-top: 24px;">Módulo de relatórios avançados em desenvolvimento.</p>
+        <div class="card poly-wrap" id="poly-report-root">
+            <div class="poly-head">
+                <div class="poly-title-row">
+                    <h2 class="poly-title">Relatório de Polifarmácia</h2>
+                    <span class="poly-badge-count" id="poly-badge-total" aria-label="Total de pacientes">0</span>
+                </div>
+            </div>
+            <p class="poly-desc">
+                Pacientes em uso de 5 ou mais medicamentos simultaneamente — grupo de alto risco para interações.
+            </p>
+
+            <div class="poly-alert" role="note">
+                <span aria-hidden="true">⚠</span>
+                <span>Pacientes em polifarmácia necessitam de acompanhamento farmacêutico reforçado.</span>
+            </div>
+
+            <div class="poly-toolbar poly-no-print">
+                <button type="button" class="poly-btn-pdf" id="poly-btn-print">Exportar PDF</button>
+            </div>
+
+            <div id="poly-content">
+                <div class="poly-loading" id="poly-loading">
+                    <svg class="poly-spinner" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="32" stroke-dashoffset="10" opacity="0.9"/>
+                    </svg>
+                    <span>Buscando...</span>
+                </div>
             </div>
         </div>
     </main>
+    <script src="../js/fetch-helpers.js"></script>
     <script src="../js/shell.js"></script>
     <script src="../js/app.js?v=2"></script>
+    <script>
+        (function () {
+            var API = '/backend/api/polifarmacia.php';
+            var badge = document.getElementById('poly-badge-total');
+            var content = document.getElementById('poly-content');
+            var loadingEl = document.getElementById('poly-loading');
+
+            function esc(s) {
+                if (s == null) return '';
+                var d = document.createElement('div');
+                d.textContent = s;
+                return d.innerHTML;
+            }
+
+            function renderTable(rows) {
+                var thead =
+                    '<thead><tr>' +
+                    '<th>Paciente</th><th>Idade</th><th>Medicamentos</th><th>Risco</th><th>Ação</th>' +
+                    '</tr></thead>';
+                var body = rows
+                    .map(function (p) {
+                        var meds = Array.isArray(p.medicamentos) ? p.medicamentos.join(', ') : '';
+                        var risk = p.nivel_risco === 'muito_alto' ? 'muito_alto' : 'alto';
+                        var riskClass = risk === 'muito_alto' ? 'poly-risk--muito' : 'poly-risk--alto';
+                        var riskLabel = risk === 'muito_alto' ? 'MUITO ALTO' : 'ALTO';
+                        return (
+                            '<tr>' +
+                            '<td><strong>' +
+                            esc(p.nome) +
+                            '</strong></td>' +
+                            '<td>' +
+                            esc(String(p.idade)) +
+                            '</td>' +
+                            '<td><div class="poly-meds" title="' +
+                            esc(meds) +
+                            '">' +
+                            esc(meds) +
+                            '</div></td>' +
+                            '<td><span class="poly-risk ' +
+                            riskClass +
+                            '">' +
+                            riskLabel +
+                            '</span></td>' +
+                            '<td><a class="poly-btn-pront" href="pacientes.html?id=' +
+                            encodeURIComponent(String(p.id)) +
+                            '">Ver prontuário</a></td>' +
+                            '</tr>'
+                        );
+                    })
+                    .join('');
+                return (
+                    '<div class="poly-table-wrap"><table class="poly-table">' + thead + '<tbody>' + body + '</tbody></table></div>'
+                );
+            }
+
+            function load() {
+                loadingEl.classList.remove('hidden');
+                content.innerHTML = '';
+                content.appendChild(loadingEl);
+
+                fetch(API, { credentials: 'same-origin' })
+                    .then(parseJsonFetchResponse)
+                    .then(function (data) {
+                        loadingEl.classList.add('hidden');
+                        var total = typeof data.total === 'number' ? data.total : (data.pacientes || []).length;
+                        var rows = data.pacientes || [];
+                        badge.textContent = String(total);
+
+                        if (rows.length === 0) {
+                            content.innerHTML =
+                                '<div class="poly-empty" role="status">✓ Nenhum paciente em situação de polifarmácia</div>';
+                            return;
+                        }
+
+                        content.innerHTML = renderTable(rows);
+                    })
+                    .catch(function (err) {
+                        loadingEl.classList.add('hidden');
+                        badge.textContent = '0';
+                        content.innerHTML =
+                            '<p class="poly-err" role="alert">' +
+                            esc(err.message || 'Não foi possível carregar o relatório.') +
+                            '</p>';
+                    });
+            }
+
+            document.getElementById('poly-btn-print').addEventListener('click', function () {
+                window.print();
+            });
+
+            load();
+        })();
+    </script>
 </body>
 </html>

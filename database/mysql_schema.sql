@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS pacientes (
   idade INT NOT NULL,
   cpf VARCHAR(20) DEFAULT NULL,
   sexo VARCHAR(20) DEFAULT 'masculino',
+  peso DECIMAL(5,2) NULL COMMENT 'kg',
+  altura INT NULL COMMENT 'cm',
   doencas TEXT,
   medicamentos_usados TEXT,
   alergias TEXT,
@@ -45,6 +47,14 @@ CREATE TABLE IF NOT EXISTS medicamentos (
   dose VARCHAR(50),
   indicacao TEXT,
   contraindicacoes TEXT,
+  dose_mg_kg DECIMAL(8,3) NULL COMMENT 'dose em mg por kg do paciente',
+  dose_minima DECIMAL(8,2) NULL COMMENT 'mg',
+  dose_maxima DECIMAL(8,2) NULL COMMENT 'mg',
+  dose_adulto VARCHAR(100) NULL,
+  dose_pediatrica VARCHAR(100) NULL,
+  dose_geriatrica VARCHAR(100) NULL,
+  idade_minima INT NULL COMMENT 'anos',
+  via_administracao VARCHAR(50) NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_medicamentos_farmacia FOREIGN KEY (farmacia_id) REFERENCES farmacias(id) ON DELETE CASCADE,
   KEY idx_medicamentos_farmacia (farmacia_id)
@@ -92,3 +102,20 @@ CREATE TABLE IF NOT EXISTS interacoes_globais (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- ---------------------------------------------------------------------------
+-- Migração: bases já existentes — executar no phpMyAdmin se as colunas ainda não existirem
+-- ---------------------------------------------------------------------------
+-- ALTER TABLE pacientes
+--   ADD COLUMN peso DECIMAL(5,2) NULL COMMENT 'kg',
+--   ADD COLUMN altura INT NULL COMMENT 'cm';
+--
+-- ALTER TABLE medicamentos
+--   ADD COLUMN dose_mg_kg DECIMAL(8,3) NULL COMMENT 'dose em mg por kg do paciente',
+--   ADD COLUMN dose_minima DECIMAL(8,2) NULL COMMENT 'mg',
+--   ADD COLUMN dose_maxima DECIMAL(8,2) NULL COMMENT 'mg',
+--   ADD COLUMN dose_adulto VARCHAR(100) NULL,
+--   ADD COLUMN dose_pediatrica VARCHAR(100) NULL,
+--   ADD COLUMN dose_geriatrica VARCHAR(100) NULL,
+--   ADD COLUMN idade_minima INT NULL COMMENT 'anos',
+--   ADD COLUMN via_administracao VARCHAR(50) NULL;
