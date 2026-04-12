@@ -43,10 +43,14 @@ try {
     $stmt = $conn->query('SELECT COUNT(*) AS total FROM pacientes');
     $total_pacientes = (int) $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
+    $stmt = $conn->query('SELECT COUNT(*) AS total FROM farmacias WHERE ativo = 1');
+    $total_farmacias_ativas = (int) $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
     echo json_encode([
-        'total_medicamentos' => $total_medicamentos,
-        'total_interacoes'   => $total_interacoes,
-        'total_pacientes'    => $total_pacientes,
+        'total_medicamentos'     => $total_medicamentos,
+        'total_interacoes'       => $total_interacoes,
+        'total_pacientes'        => $total_pacientes,
+        'total_farmacias_ativas' => $total_farmacias_ativas,
     ], JSON_UNESCAPED_UNICODE);
 } catch (PDOException $e) {
     http_response_code(500);

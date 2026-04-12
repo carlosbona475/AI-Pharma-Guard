@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel administrativo — AI Pharma Guard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes lp-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* ========== LOGIN VIEW ========== */
+        .adm-login-wrap {
+            position: relative;
+            min-height: 100dvh;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 16px;
+            overflow: hidden;
+        }
+
+        .adm-bg-glow-1,
+        .adm-bg-glow-2,
+        .adm-bg-glow-3 {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .adm-bg-glow-1 {
+            width: min(480px, 100vw);
+            height: min(480px, 100vw);
+            top: -200px;
+            left: -200px;
+            background: rgba(44, 93, 140, 0.15);
+            filter: blur(80px);
+        }
+
+        .adm-bg-glow-2 {
+            width: min(480px, 100vw);
+            height: min(480px, 100vw);
+            bottom: -200px;
+            right: -200px;
+            background: rgba(61, 125, 110, 0.12);
+            filter: blur(80px);
+        }
+
+        .adm-bg-glow-3 {
+            width: min(560px, 110vw);
+            height: min(560px, 110vw);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(148, 163, 184, 0.12) 0%, transparent 65%);
+            filter: blur(72px);
+            opacity: 0.85;
+        }
+
+        .adm-login-card {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+            border-radius: 20px;
+            background: #ffffff;
+            color: #0f172a;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.5s ease;
+        }
+
+        .adm-login-brand {
+            text-align: center;
+        }
+
+        .adm-login-logo {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .adm-login-title {
+            margin: 12px 0 0;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+        }
+
+        .adm-login-badge {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 4px 12px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            color: #92400e;
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            border-radius: 999px;
+        }
+
+        .adm-login-rule {
+            border: none;
+            border-top: 1px solid #f1f5f9;
+            margin: 20px 0;
+        }
+
+        .adm-login-h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .adm-login-sub {
+            margin: 6px 0 0;
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .adm-login-form {
+            margin-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .adm-login-form label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .adm-input-wrap {
+            position: relative;
+        }
+
+        .adm-input-wrap--pwd .adm-input {
+            padding-right: 44px;
+        }
+
+        .adm-ico {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #94a3b8;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .adm-ico svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .adm-input {
+            width: 100%;
+            padding: 13px 14px 13px 42px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #0f172a;
+            background: #fafafa;
+            font-family: inherit;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .adm-input:focus {
+            outline: none;
+            border-color: #2c5d8c;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(44, 93, 140, 0.15);
+        }
+
+        .adm-toggle {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .adm-toggle:hover {
+            background: #f1f5f9;
+            color: #2c5d8c;
+        }
+
+        .adm-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .adm-btn-primary {
+            width: 100%;
+            height: 50px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            color: #fff;
+            background: linear-gradient(180deg, #3d7d6e 0%, #2c5d8c 55%, #234a6e 100%);
+            box-shadow:
+                0 1px 2px rgba(0, 0, 0, 0.12),
+                0 8px 24px rgba(44, 93, 140, 0.35);
+            transition: transform 0.15s ease, filter 0.2s ease;
+        }
+
+        .adm-btn-primary:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+        }
+
+        .adm-login-err {
+            margin-top: 4px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+        }
+
+        /* ========== PANEL LAYOUT ========== */
+        .adm-panel {
+            min-height: 100dvh;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .adm-topbar {
+            height: 56px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px 0 12px;
+            background: #0f172a;
+            border-bottom: 1px solid #1e293b;
+            position: sticky;
+            top: 0;
+            z-index: 300;
+        }
+
+        .adm-burger {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #94a3b8;
+            cursor: pointer;
+        }
+
+        .adm-burger:hover {
+            background: #1e293b;
+            color: #f1f5f9;
+        }
+
+        .adm-burger svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .adm-topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .adm-topbar-logo {
+            flex-shrink: 0;
+            color: #fff;
+        }
+
+        .adm-topbar-name {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.02em;
+        }
+
+        .adm-badge-admin {
+            padding: 3px 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            color: #fff;
+            background: #dc2626;
+            border-radius: 999px;
+        }
+
+        .adm-topbar-spacer {
+            flex: 1;
+        }
+
+        .adm-clock {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #94a3b8;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .adm-btn-outline {
+            padding: 6px 14px;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            background: transparent;
+            color: #94a3b8;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: border-color 0.15s ease, color 0.15s ease;
+        }
+
+        .adm-btn-outline:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+        .adm-shell {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            position: relative;
+        }
+
+        .adm-sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            top: 56px;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 199;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .adm-sidebar-overlay.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .adm-sidebar {
+            width: 220px;
+            flex-shrink: 0;
+            background: #0f172a;
+            border-right: 1px solid #1e293b;
+            padding: 12px 0 24px;
+            height: calc(100vh - 56px);
+            position: fixed;
+            top: 56px;
+            left: 0;
+            z-index: 200;
+            overflow-y: auto;
+            transition: transform 0.25s ease;
+        }
+
+        .adm-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 2px 8px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #94a3b8;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: calc(100% - 16px);
+            text-align: left;
+            font-family: inherit;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .adm-nav-item:hover {
+            background: #1e293b;
+            color: #f1f5f9;
+        }
+
+        .adm-nav-item--active {
+            background: #1e3a5f;
+            color: #fff;
+            border-left: 3px solid #2c5d8c;
+            padding-left: 13px;
+        }
+
+        .adm-nav-item svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .adm-nav-badge {
+            margin-left: auto;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: #fff;
+            background: #dc2626;
+            border-radius: 999px;
+        }
+
+        .adm-main {
+            margin-left: 220px;
+            flex: 1;
+            padding: 28px;
+            background: #0a1628;
+            min-height: calc(100vh - 56px);
+        }
+
+        .adm-panel-section {
+            max-width: 1200px;
+        }
+
+        .adm-section-head {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .adm-section-title {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #f1f5f9;
+        }
+
+        .adm-btn-refresh {
+            padding: 6px 14px;
+            border: 1px solid #475569;
+            border-radius: 8px;
+            background: transparent;
+            color: #e2e8f0;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .adm-btn-refresh:hover {
+            border-color: #94a3b8;
+            background: #1e293b;
+        }
+
+        .adm-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            padding: 48px 24px;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+
+        .adm-spinner {
+            width: 36px;
+            height: 36px;
+            animation: lp-spin 0.7s linear infinite;
+        }
+
+        .adm-empty {
+            text-align: center;
+            padding: 48px 24px;
+            color: #94a3b8;
+            font-size: 0.9375rem;
+        }
+
+        .adm-empty svg {
+            display: block;
+            margin: 0 auto 16px;
+            color: #16a34a;
+        }
+
+        .adm-table-wrap {
+            background: #0f172a;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+        }
+
+        .adm-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .adm-table thead th {
+            background: #1e293b;
+            color: #64748b;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            padding: 12px 16px;
+            text-align: left;
+        }
+
+        .adm-table tbody td {
+            color: #e2e8f0;
+            padding: 14px 16px;
+            border-bottom: 1px solid #1e293b;
+        }
+
+        .adm-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .adm-table tbody tr:hover {
+            background: #1e293b;
+        }
+
+        .adm-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .adm-btn-ok {
+            padding: 6px 14px;
+            border: none;
+            border-radius: 8px;
+            background: #16a34a;
+            color: #fff;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s ease, transform 0.15s ease;
+        }
+
+        .adm-btn-ok:hover {
+            background: #15803d;
+            transform: translateY(-1px);
+        }
+
+        .adm-btn-reject {
+            padding: 6px 14px;
+            border: 1px solid #dc2626;
+            border-radius: 8px;
+            background: transparent;
+            color: #dc2626;
+            font-size: 0.8rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .adm-btn-reject:hover {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .adm-pill-ativo {
+            display: inline-block;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #16a34a;
+            background: #dcfce7;
+            border-radius: 999px;
+        }
+
+        .adm-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+
+        .adm-stat-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .adm-stat-ico {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .adm-stat-ico svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .adm-stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #f1f5f9;
+            line-height: 1.1;
+        }
+
+        .adm-stat-label {
+            margin-top: 4px;
+            font-size: 0.875rem;
+            color: #64748b;
+        }
+
+        .adm-config-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 560px;
+        }
+
+        .adm-config-block {
+            margin-bottom: 24px;
+        }
+
+        .adm-config-block:last-child {
+            margin-bottom: 0;
+        }
+
+        .adm-config-block h3 {
+            margin: 0 0 8px;
+            font-size: 0.9375rem;
+            font-weight: 700;
+            color: #f1f5f9;
+        }
+
+        .adm-config-block p {
+            margin: 0;
+            font-size: 0.875rem;
+            color: #94a3b8;
+            line-height: 1.55;
+        }
+
+        .adm-db-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 12px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            border-radius: 999px;
+        }
+
+        .adm-db-badge--ok {
+            background: rgba(22, 163, 74, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+
+        .adm-db-badge--err {
+            background: rgba(220, 38, 38, 0.2);
+            color: #f87171;
+            border: 1px solid rgba(248, 113, 113, 0.35);
+        }
+
+        /* Toast */
+        #adm-toast-root {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            pointer-events: none;
+        }
+
+        .adm-toast {
+            pointer-events: auto;
+            padding: 12px 20px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 0.875rem;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.35s ease;
+            max-width: min(360px, calc(100vw - 48px));
+        }
+
+        .adm-toast--success {
+            background: #16a34a;
+        }
+
+        .adm-toast--error {
+            background: #dc2626;
+        }
+
+        @media (max-width: 900px) {
+            .adm-burger {
+                display: flex;
+            }
+
+            .adm-sidebar-overlay {
+                display: block;
+            }
+
+            .adm-sidebar {
+                transform: translateX(-100%);
+            }
+
+            .adm-sidebar.adm-sidebar--open {
+                transform: translateX(0);
+            }
+
+            .adm-main {
+                margin-left: 0;
+            }
+
+            .adm-clock {
+                display: none;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .adm-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .adm-main {
+                padding: 16px;
+            }
+
+            .adm-table-wrap {
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- TELA 1: LOGIN -->
+    <div id="view-login" class="adm-login-wrap">
+        <div class="adm-bg-glow-1" aria-hidden="true"></div>
+        <div class="adm-bg-glow-2" aria-hidden="true"></div>
+        <div class="adm-bg-glow-3" aria-hidden="true"></div>
+
+        <div class="adm-login-card">
+            <div class="adm-login-brand">
+                <svg class="adm-login-logo" width="48" height="48" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="adm-sh-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop offset="0" stop-color="#2c5d8c"/>
+                            <stop offset="1" stop-color="#3d7d6e"/>
+                        </linearGradient>
+                    </defs>
+                    <path fill="url(#adm-sh-grad)" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                    <path fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                    <path stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" d="M12 9v6M9 12h6"/>
+                </svg>
+                <div class="adm-login-title">AI Pharma Guard</div>
+                <div class="adm-login-badge">ADMINISTRADOR</div>
+            </div>
+            <hr class="adm-login-rule"/>
+            <h2 class="adm-login-h1">Acesso Restrito</h2>
+            <p class="adm-login-sub">Digite a chave de administrador</p>
+
+            <form id="adm-login-form" class="adm-login-form" novalidate>
+                <div>
+                    <label for="adm-key">Chave de acesso</label>
+                    <div class="adm-input-wrap adm-input-wrap--pwd">
+                        <span class="adm-ico" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
+                        <input type="password" id="adm-key" class="adm-input" autocomplete="current-password" placeholder="••••••••"/>
+                        <button type="button" class="adm-toggle" id="adm-key-toggle" aria-label="Mostrar chave" aria-pressed="false">
+                            <svg class="adm-eye-show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="adm-eye-hide hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div id="adm-login-err" class="adm-login-err hidden" role="alert"></div>
+                <button type="submit" class="adm-btn-primary">Entrar no painel</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- TELA 2: PAINEL -->
+    <div id="view-panel" class="adm-panel hidden">
+        <header class="adm-topbar">
+            <button type="button" class="adm-burger" id="adm-burger" aria-label="Abrir menu" aria-expanded="false">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+            <div class="adm-topbar-brand">
+                <svg class="adm-topbar-logo" width="32" height="32" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <path fill="currentColor" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                    <path fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                    <path stroke="#fff" stroke-width="1.6" stroke-linecap="round" d="M12 9v6M9 12h6"/>
+                </svg>
+                <span class="adm-topbar-name">AI Pharma Guard</span>
+                <span class="adm-badge-admin">ADMIN</span>
+            </div>
+            <div class="adm-topbar-spacer"></div>
+            <span class="adm-clock" id="adm-clock"></span>
+            <button type="button" class="adm-btn-outline" id="adm-logout">Sair</button>
+        </header>
+
+        <div class="adm-sidebar-overlay" id="adm-sidebar-overlay" aria-hidden="true"></div>
+
+        <div class="adm-shell">
+            <aside class="adm-sidebar" id="adm-sidebar" aria-label="Navegação principal">
+                <button type="button" class="adm-nav-item adm-nav-item--active" data-tab="pendentes">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2"/></svg>
+                    Pendentes
+                    <span class="adm-nav-badge" id="badge-pendentes">0</span>
+                </button>
+                <button type="button" class="adm-nav-item" data-tab="aprovadas">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                    Aprovadas
+                </button>
+                <button type="button" class="adm-nav-item" data-tab="stats">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+                    Estatísticas
+                </button>
+                <button type="button" class="adm-nav-item" data-tab="config">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.372.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    Configurações
+                </button>
+            </aside>
+
+            <main class="adm-main">
+                <section id="panel-pendentes" class="adm-panel-section" data-panel="pendentes">
+                    <div class="adm-section-head">
+                        <h2 class="adm-section-title">Farmácias Pendentes</h2>
+                        <button type="button" class="adm-btn-refresh" id="btn-refresh-pendentes">↻ Atualizar</button>
+                    </div>
+                    <div id="pendentes-body"></div>
+                </section>
+
+                <section id="panel-aprovadas" class="adm-panel-section hidden" data-panel="aprovadas">
+                    <div class="adm-section-head">
+                        <h2 class="adm-section-title">Farmácias Aprovadas</h2>
+                        <button type="button" class="adm-btn-refresh" id="btn-refresh-aprovadas">↻ Atualizar</button>
+                    </div>
+                    <div id="aprovadas-body"></div>
+                </section>
+
+                <section id="panel-stats" class="adm-panel-section hidden" data-panel="stats">
+                    <div class="adm-section-head">
+                        <h2 class="adm-section-title">Estatísticas</h2>
+                        <button type="button" class="adm-btn-refresh" id="btn-refresh-stats">↻ Atualizar</button>
+                    </div>
+                    <div id="stats-body"></div>
+                </section>
+
+                <section id="panel-config" class="adm-panel-section hidden" data-panel="config">
+                    <div class="adm-section-head">
+                        <h2 class="adm-section-title">Configurações</h2>
+                    </div>
+                    <div id="config-body"></div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <div id="adm-toast-root" aria-live="polite"></div>
+
+    <script src="../js/fetch-helpers.js"></script>
+    <script>
+        (function () {
+            var ADMIN_PASSWORD = 'Ph4rm4Gu4rd#Adm!n2025';
+            var ADMIN_KEY = ADMIN_PASSWORD;
+
+            function adminUrl(action) {
+                return '/backend/admin.php?admin_key=' + encodeURIComponent(ADMIN_KEY) + '&action=' + encodeURIComponent(action);
+            }
+
+            var viewLogin = document.getElementById('view-login');
+            var viewPanel = document.getElementById('view-panel');
+            var loginForm = document.getElementById('adm-login-form');
+            var loginErr = document.getElementById('adm-login-err');
+            var keyInput = document.getElementById('adm-key');
+            var keyToggle = document.getElementById('adm-key-toggle');
+            var eyeShow = keyToggle.querySelector('.adm-eye-show');
+            var eyeHide = keyToggle.querySelector('.adm-eye-hide');
+            var clockEl = document.getElementById('adm-clock');
+            var sidebar = document.getElementById('adm-sidebar');
+            var overlay = document.getElementById('adm-sidebar-overlay');
+            var burger = document.getElementById('adm-burger');
+            var badgePendentes = document.getElementById('badge-pendentes');
+            var navItems = document.querySelectorAll('.adm-nav-item');
+            var toastRoot = document.getElementById('adm-toast-root');
+
+            keyToggle.addEventListener('click', function () {
+                var showing = keyInput.getAttribute('type') === 'text';
+                if (showing) {
+                    keyInput.setAttribute('type', 'password');
+                    keyToggle.setAttribute('aria-label', 'Mostrar chave');
+                    keyToggle.setAttribute('aria-pressed', 'false');
+                    eyeShow.classList.remove('hidden');
+                    eyeHide.classList.add('hidden');
+                } else {
+                    keyInput.setAttribute('type', 'text');
+                    keyToggle.setAttribute('aria-label', 'Ocultar chave');
+                    keyToggle.setAttribute('aria-pressed', 'true');
+                    eyeShow.classList.add('hidden');
+                    eyeHide.classList.remove('hidden');
+                }
+            });
+
+            loginForm.addEventListener('submit', function (e) {
+                e.preventDefault();
+                loginErr.classList.add('hidden');
+                loginErr.textContent = '';
+                var v = keyInput.value;
+                if (v === ADMIN_PASSWORD) {
+                    viewLogin.classList.add('hidden');
+                    viewPanel.classList.remove('hidden');
+                    document.body.style.overflow = '';
+                    startClock();
+                    switchTab('pendentes');
+                    loadPendentes();
+                } else {
+                    loginErr.textContent = 'Chave de acesso incorreta';
+                    loginErr.classList.remove('hidden');
+                }
+            });
+
+            document.getElementById('adm-logout').addEventListener('click', function () {
+                viewPanel.classList.add('hidden');
+                viewLogin.classList.remove('hidden');
+                keyInput.value = '';
+                stopClock();
+                closeSidebarMobile();
+            });
+
+            function startClock() {
+                tickClock();
+                window._admClockId = setInterval(tickClock, 1000);
+            }
+
+            function stopClock() {
+                if (window._admClockId) {
+                    clearInterval(window._admClockId);
+                    window._admClockId = null;
+                }
+            }
+
+            function tickClock() {
+                clockEl.textContent = new Date().toLocaleString('pt-BR', {
+                    weekday: 'short',
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                });
+            }
+
+            function openSidebarMobile() {
+                sidebar.classList.add('adm-sidebar--open');
+                overlay.classList.add('is-visible');
+                overlay.setAttribute('aria-hidden', 'false');
+                burger.setAttribute('aria-expanded', 'true');
+            }
+
+            function closeSidebarMobile() {
+                sidebar.classList.remove('adm-sidebar--open');
+                overlay.classList.remove('is-visible');
+                overlay.setAttribute('aria-hidden', 'true');
+                burger.setAttribute('aria-expanded', 'false');
+            }
+
+            burger.addEventListener('click', function () {
+                if (sidebar.classList.contains('adm-sidebar--open')) {
+                    closeSidebarMobile();
+                } else {
+                    openSidebarMobile();
+                }
+            });
+
+            overlay.addEventListener('click', closeSidebarMobile);
+
+            window.showToast = function (message, tipo) {
+                var el = document.createElement('div');
+                el.className = 'adm-toast ' + (tipo === 'error' ? 'adm-toast--error' : 'adm-toast--success');
+                el.textContent = message;
+                toastRoot.appendChild(el);
+                setTimeout(function () {
+                    el.remove();
+                }, 3000);
+            };
+
+            function switchTab(name) {
+                var panels = document.querySelectorAll('[data-panel]');
+                panels.forEach(function (p) {
+                    p.classList.toggle('hidden', p.getAttribute('data-panel') !== name);
+                });
+                navItems.forEach(function (btn) {
+                    var t = btn.getAttribute('data-tab');
+                    btn.classList.toggle('adm-nav-item--active', t === name);
+                });
+                closeSidebarMobile();
+                if (name === 'pendentes') loadPendentes();
+                if (name === 'aprovadas') loadAprovadas();
+                if (name === 'stats') loadStats();
+                if (name === 'config') loadConfig();
+            }
+
+            navItems.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    switchTab(btn.getAttribute('data-tab'));
+                });
+            });
+
+            document.getElementById('btn-refresh-pendentes').addEventListener('click', function () {
+                loadPendentes();
+            });
+            document.getElementById('btn-refresh-aprovadas').addEventListener('click', function () {
+                loadAprovadas();
+            });
+            document.getElementById('btn-refresh-stats').addEventListener('click', function () {
+                loadStats();
+            });
+
+            function formatDt(s) {
+                if (!s) return '—';
+                try {
+                    var d = new Date(s.replace(' ', 'T'));
+                    if (isNaN(d.getTime())) return s;
+                    return d.toLocaleString('pt-BR');
+                } catch (e) {
+                    return s;
+                }
+            }
+
+            function loadingHtml() {
+                return (
+                    '<div class="adm-loading">' +
+                    '<svg class="adm-spinner" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">' +
+                    '<circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="32" stroke-dashoffset="10" opacity="0.9"/>' +
+                    '</svg>' +
+                    '<span>Buscando...</span></div>'
+                );
+            }
+
+            var pendentesBody = document.getElementById('pendentes-body');
+
+            function loadPendentes() {
+                pendentesBody.innerHTML = loadingHtml();
+                fetch(adminUrl('listar_pendentes'))
+                    .then(parseJsonFetchResponse)
+                    .then(function (data) {
+                        var list = data.farmacias || [];
+                        badgePendentes.textContent = String(list.length);
+                        if (list.length === 0) {
+                            pendentesBody.innerHTML =
+                                '<div class="adm-empty">' +
+                                '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>' +
+                                '<div>Nenhuma farmácia aguardando aprovação</div></div>';
+                            return;
+                        }
+                        var rows = list
+                            .map(function (f) {
+                                return (
+                                    '<tr>' +
+                                    '<td>' +
+                                    f.id +
+                                    '</td><td>' +
+                                    escapeHtml(f.nome) +
+                                    '</td><td>' +
+                                    escapeHtml(f.email) +
+                                    '</td><td>' +
+                                    escapeHtml(f.telefone || '—') +
+                                    '</td><td>' +
+                                    formatDt(f.data_criacao) +
+                                    '</td><td><div class="adm-actions">' +
+                                    '<button type="button" class="adm-btn-ok" data-act="aprovar" data-id="' +
+                                    f.id +
+                                    '">✓ Aprovar</button>' +
+                                    '<button type="button" class="adm-btn-reject" data-act="rejeitar" data-id="' +
+                                    f.id +
+                                    '">✗ Rejeitar</button></div></td></tr>'
+                                );
+                            })
+                            .join('');
+                        pendentesBody.innerHTML =
+                            '<div class="adm-table-wrap"><table class="adm-table"><thead><tr>' +
+                            '<th>ID</th><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Data cadastro</th><th>Ações</th>' +
+                            '</tr></thead><tbody>' +
+                            rows +
+                            '</tbody></table></div>';
+                        pendentesBody.querySelectorAll('[data-act]').forEach(function (b) {
+                            b.addEventListener('click', function () {
+                                var id = parseInt(b.getAttribute('data-id'), 10);
+                                var act = b.getAttribute('data-act');
+                                postAcao(act, id);
+                            });
+                        });
+                    })
+                    .catch(function (err) {
+                        pendentesBody.innerHTML =
+                            '<div class="adm-empty">Erro ao carregar: ' + escapeHtml(err.message) + '</div>';
+                    });
+            }
+
+            function escapeHtml(t) {
+                if (t == null) return '';
+                var d = document.createElement('div');
+                d.textContent = t;
+                return d.innerHTML;
+            }
+
+            function postAcao(action, farmaciaId) {
+                var url = adminUrl(action);
+                fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ farmacia_id: farmaciaId })
+                })
+                    .then(parseJsonFetchResponse)
+                    .then(function (data) {
+                        showToast(data.message || 'Operação concluída.', 'success');
+                        loadPendentes();
+                    })
+                    .catch(function (err) {
+                        showToast(err.message || 'Erro na operação.', 'error');
+                        loadPendentes();
+                    });
+            }
+
+            var aprovadasBody = document.getElementById('aprovadas-body');
+
+            function loadAprovadas() {
+                aprovadasBody.innerHTML = loadingHtml();
+                fetch(adminUrl('listar_farmacias'))
+                    .then(parseJsonFetchResponse)
+                    .then(function (data) {
+                        var all = data.farmacias || [];
+                        var list = all.filter(function (f) {
+                            return f.ativo == 1 || f.ativo === true || f.ativo === '1';
+                        });
+                        if (list.length === 0) {
+                            aprovadasBody.innerHTML =
+                                '<div class="adm-empty">Nenhuma farmácia aprovada ainda.</div>';
+                            return;
+                        }
+                        var rows = list
+                            .map(function (f) {
+                                return (
+                                    '<tr>' +
+                                    '<td>' +
+                                    f.id +
+                                    '</td><td>' +
+                                    escapeHtml(f.nome) +
+                                    '</td><td>' +
+                                    escapeHtml(f.email) +
+                                    '</td><td>' +
+                                    escapeHtml(f.telefone || '—') +
+                                    '</td><td>' +
+                                    formatDt(f.aprovado_em) +
+                                    '</td><td><span class="adm-pill-ativo">Ativo</span></td></tr>'
+                                );
+                            })
+                            .join('');
+                        aprovadasBody.innerHTML =
+                            '<div class="adm-table-wrap"><table class="adm-table"><thead><tr>' +
+                            '<th>ID</th><th>Nome</th><th>E-mail</th><th>Telefone</th><th>Aprovado em</th><th>Status</th>' +
+                            '</tr></thead><tbody>' +
+                            rows +
+                            '</tbody></table></div>';
+                    })
+                    .catch(function (err) {
+                        aprovadasBody.innerHTML =
+                            '<div class="adm-empty">Erro ao carregar: ' + escapeHtml(err.message) + '</div>';
+                    });
+            }
+
+            var statsBody = document.getElementById('stats-body');
+
+            function loadStats() {
+                statsBody.innerHTML = loadingHtml();
+                fetch('/backend/api/dashboard.php')
+                    .then(parseJsonFetchResponse)
+                    .then(function (d) {
+                        var p = d.total_pacientes != null ? d.total_pacientes : '—';
+                        var m = d.total_medicamentos != null ? d.total_medicamentos : '—';
+                        var i = d.total_interacoes != null ? d.total_interacoes : '—';
+                        var f = d.total_farmacias_ativas != null ? d.total_farmacias_ativas : '—';
+                        statsBody.innerHTML =
+                            '<div class="adm-stats-grid">' +
+                            '<div class="adm-stat-card">' +
+                            '<div class="adm-stat-ico" style="background:rgba(59,130,246,0.15);color:#60a5fa">' +
+                            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div>' +
+                            '<div class="adm-stat-num">' +
+                            p +
+                            '</div><div class="adm-stat-label">Pacientes</div></div>' +
+                            '<div class="adm-stat-card">' +
+                            '<div class="adm-stat-ico" style="background:rgba(168,85,247,0.15);color:#c084fc">' +
+                            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg></div>' +
+                            '<div class="adm-stat-num">' +
+                            m +
+                            '</div><div class="adm-stat-label">Medicamentos</div></div>' +
+                            '<div class="adm-stat-card">' +
+                            '<div class="adm-stat-ico" style="background:rgba(234,179,8,0.15);color:#facc15">' +
+                            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>' +
+                            '<div class="adm-stat-num">' +
+                            i +
+                            '</div><div class="adm-stat-label">Interações</div></div>' +
+                            '<div class="adm-stat-card">' +
+                            '<div class="adm-stat-ico" style="background:rgba(34,197,94,0.15);color:#4ade80">' +
+                            '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg></div>' +
+                            '<div class="adm-stat-num">' +
+                            f +
+                            '</div><div class="adm-stat-label">Farmácias Ativas</div></div>' +
+                            '</div>';
+                    })
+                    .catch(function (err) {
+                        statsBody.innerHTML =
+                            '<div class="adm-empty">Erro ao carregar: ' + escapeHtml(err.message) + '</div>';
+                    });
+            }
+
+            var configBody = document.getElementById('config-body');
+
+            function loadConfig() {
+                configBody.innerHTML =
+                    '<div class="adm-config-card"><p class="adm-loading" style="margin:0">Verificando...</p></div>';
+                fetch('/backend/teste_conexao.php')
+                    .then(function (res) {
+                        return res.json();
+                    })
+                    .then(function (j) {
+                        var ok = j.mysql_habilitado === true;
+                        configBody.innerHTML =
+                            '<div class="adm-config-card">' +
+                            '<div class="adm-config-block">' +
+                            '<h3>Segurança</h3>' +
+                            '<p>Para maior segurança, altere a chave de administrador diretamente no servidor (constante <code>ADMIN_KEY</code> em <code>backend/admin.php</code>) e use sempre HTTPS em produção.</p>' +
+                            '</div>' +
+                            '<div class="adm-config-block">' +
+                            '<h3>Sistema</h3>' +
+                            '<p>Versão do painel: <strong>v1.0.0</strong></p>' +
+                            '</div>' +
+                            '<div class="adm-config-block">' +
+                            '<h3>Banco de dados</h3>' +
+                            '<p>Driver PDO MySQL disponível no PHP.</p>' +
+                            '<span class="adm-db-badge ' +
+                            (ok ? 'adm-db-badge--ok' : 'adm-db-badge--err') +
+                            '">' +
+                            (ok ? 'Conectado' : 'Erro') +
+                            '</span>' +
+                            '<p style="margin-top:12px;font-size:0.8125rem;color:#64748b">PHP ' +
+                            escapeHtml(j.php_version || '') +
+                            '</p>' +
+                            '</div></div>';
+                    })
+                    .catch(function () {
+                        configBody.innerHTML =
+                            '<div class="adm-config-card">' +
+                            '<div class="adm-config-block"><h3>Banco de dados</h3>' +
+                            '<span class="adm-db-badge adm-db-badge--err">Erro</span></div></div>';
+                    });
+            }
+        })();
+    </script>
+</body>
+</html>

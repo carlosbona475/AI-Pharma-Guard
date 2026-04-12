@@ -31,7 +31,19 @@ $action = isset($_GET['action']) ? trim($_GET['action']) : '';
 // ---- Listar farmácias pendentes (ativo = false) ----
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'listar_pendentes') {
     try {
-        $stmt = $conn->prepare('SELECT id, nome, email, telefone, ativo, aprovado_em FROM farmacias WHERE ativo = 0 OR ativo IS NULL ORDER BY id');
+        $stmt = $conn->prepare('SELECT id, nome, email, telefone, ativo, aprovado_em, data_criacao FROM farmacias WHERE ativo = 0 OR ativo IS NULL ORDER BY id');
+        $stmt->execute();
+        $lista = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        sendJson(['success' => true, 'farmacias' => $lista, 'total' => count($lista)]);
+    } catch (PDOException $e) {
+        sendJson(['success' => false, 'message' => 'Erro ao listar: ' . $e->getMessage()], 500);
+    }
+}
+
+// ---- Listar todas as farmácias (para filtro ativo=1 no painel) ----
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $action === 'listar_farmacias') {
+    try {
+        $stmt = $conn->prepare('SELECT id, nome, email, telefone, ativo, aprovado_em, data_criacao FROM farmacias ORDER BY id');
         $stmt->execute();
         $lista = $stmt->fetchAll(PDO::FETCH_ASSOC);
         sendJson(['success' => true, 'farmacias' => $lista, 'total' => count($lista)]);
@@ -84,4 +96,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $action === 'rejeitar') {
     }
 }
 
-sendJson(['success' => false, 'message' => 'Ação não reconhecida. Use action=listar_pendentes, aprovar ou rejeitar.'], 400);
+sendJson(['success' => false, 'message' => 'Ação não reconhecida. Use action=listar_pendentes, listar_farmacias, aprovar ou rejeitar.'], 400);
