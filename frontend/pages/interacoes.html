@@ -8,14 +8,24 @@
 </head>
 <body>
     <header class="app-topbar">
-        <h1>AI Pharma Guard</h1>
+        <button type="button" class="sidebar-toggle" aria-label="Abrir menu">&#9776;</button>
+        <div class="app-topbar__brand">
+            <h1>AI Pharma Guard</h1>
+            <span class="app-topbar__tagline">Gestão clínica inteligente</span>
+        </div>
+        <span class="app-topbar__spacer"></span>
+        <div class="app-topbar__actions">
+            <span class="user-pill" title="Área autenticada"><span>&#128100;</span> Equipe</span>
+        </div>
     </header>
+    <div class="app-overlay" aria-hidden="true"></div>
     <aside class="app-sidebar">
         <nav>
             <div class="nav-title">Navegação</div>
             <ul>
                 <li><a href="dashboard.html"><span class="nav-icon">&#128202;</span><span>Dashboard</span></a></li>
                 <li><a href="pacientes.html"><span class="nav-icon">&#128100;</span><span>Pacientes</span></a></li>
+                <li><a href="../../pacientes.php"><span class="nav-icon">&#128203;</span><span>Cadastro (PHP)</span></a></li>
                 <li><a href="medicamentos.html"><span class="nav-icon">&#128138;</span><span>Medicamentos</span></a></li>
                 <li><a href="interacoes.html" class="active"><span class="nav-icon">&#9888;</span><span>Interações</span></a></li>
                 <li><a href="relatorios.html"><span class="nav-icon">&#128203;</span><span>Relatórios</span></a></li>
@@ -25,77 +35,89 @@
         </nav>
     </aside>
     <main class="app-main">
-        <h1 class="page-title">Análise de Interações</h1>
-        <p style="color: var(--text-muted); margin-bottom: 24px;">Selecione os medicamentos e analise possíveis interações. Cores: <span class="risk-badge risk-none">Sem interação</span> <span class="risk-badge risk-moderate">Moderada</span> <span class="risk-badge risk-severe">Grave</span></p>
-
-        <div class="card">
-            <h3>Medicamentos para análise</h3>
-            <p style="margin-bottom: 16px; color: var(--text-muted);">Selecione dois ou mais medicamentos da lista para verificar interações cadastradas no sistema.</p>
-            <div id="lista-medicamentos-check" style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;"></div>
-            <button type="button" id="btn-analisar" class="btn btn-primary">Analisar interações</button>
-        </div>
-
-        <div class="card">
-            <h3>Resultado das interações</h3>
-            <div id="resultado-interacoes" class="interacoes-result empty">
-                Selecione os medicamentos acima e clique em "Analisar interações".
+        <div class="container">
+            <div class="page-head">
+                <h1 class="page-title">Análise de Interações</h1>
+                <p class="page-subtitle" style="margin-bottom: 0;">Selecione medicamentos e analise possíveis interações cadastradas no sistema.</p>
             </div>
-        </div>
 
-        <div class="card">
-            <h3>Cadastrar nova interação</h3>
-            <p style="margin-bottom: 16px; color: var(--text-muted);">Registre uma interação conhecida entre dois medicamentos.</p>
-            <form id="form-interacao" class="form-grid" style="max-width: 640px;">
-                <div class="form-group">
-                    <label for="interacao-med-a">Medicamento A *</label>
-                    <select id="interacao-med-a" name="medicamentoA" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="interacao-med-b">Medicamento B *</label>
-                    <select id="interacao-med-b" name="medicamentoB" required></select>
-                </div>
-                <div class="form-group">
-                    <label for="interacao-tipo">Tipo de interação</label>
-                    <input type="text" id="interacao-tipo" name="tipo_interacao" placeholder="Ex: Aumento de efeito">
-                </div>
-                <div class="form-group">
-                    <label for="interacao-risco">Nível de risco</label>
-                    <select id="interacao-risco" name="nivel_risco">
-                        <option value="baixo">Baixo (verde)</option>
-                        <option value="medio" selected>Moderado (amarelo)</option>
-                        <option value="alto">Alto (vermelho)</option>
-                    </select>
-                </div>
-                <div class="form-group" style="grid-column: 1 / -1;">
-                    <label for="interacao-recomendacao">Recomendação</label>
-                    <textarea id="interacao-recomendacao" name="recomendacao" rows="3" placeholder="Orientações ao prescritor"></textarea>
-                </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Cadastrar interação</button>
-                </div>
-            </form>
-        </div>
+            <p class="legend-risco">
+                Legenda de risco:
+                <span class="risk-badge risk-none">Sem / baixo</span>
+                <span class="risk-badge risk-moderate">Moderada</span>
+                <span class="risk-badge risk-severe">Grave</span>
+            </p>
 
-        <div class="card">
-            <h3>Interações cadastradas no sistema</h3>
-            <div class="table-wrap">
-                <table class="data-table" id="tabela-interacoes">
-                    <thead>
-                        <tr>
-                            <th>Medicamento A</th>
-                            <th>Medicamento B</th>
-                            <th>Tipo</th>
-                            <th>Risco</th>
-                            <th>Recomendação</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Carregando...</td></tr>
-                    </tbody>
-                </table>
+            <div class="card">
+                <h3>Medicamentos para análise</h3>
+                <p style="margin-bottom: 16px; color: var(--text-muted);">Selecione dois ou mais medicamentos da lista para verificar interações cadastradas.</p>
+                <div id="lista-medicamentos-check" style="margin-bottom: 16px;"></div>
+                <button type="button" id="btn-analisar" class="btn btn-primary">Analisar interações</button>
+            </div>
+
+            <div class="card">
+                <h3>Resultado das interações</h3>
+                <div id="resultado-interacoes" class="interacoes-result empty">
+                    Selecione os medicamentos acima e clique em &quot;Analisar interações&quot;.
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Cadastrar nova interação</h3>
+                <p style="margin-bottom: 16px; color: var(--text-muted);">Registre uma interação conhecida entre dois medicamentos.</p>
+                <form id="form-interacao" class="form-grid" style="max-width: 640px;">
+                    <div class="form-group">
+                        <label for="interacao-med-a">Medicamento A *</label>
+                        <select id="interacao-med-a" name="medicamentoA" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="interacao-med-b">Medicamento B *</label>
+                        <select id="interacao-med-b" name="medicamentoB" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="interacao-tipo">Tipo de interação</label>
+                        <input type="text" id="interacao-tipo" name="tipo_interacao" placeholder="Ex: Aumento de efeito">
+                    </div>
+                    <div class="form-group">
+                        <label for="interacao-risco">Nível de risco</label>
+                        <select id="interacao-risco" name="nivel_risco">
+                            <option value="baixo">Baixo (verde)</option>
+                            <option value="medio" selected>Moderado (amarelo)</option>
+                            <option value="alto">Alto (vermelho)</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="grid-column: 1 / -1;">
+                        <label for="interacao-recomendacao">Recomendação</label>
+                        <textarea id="interacao-recomendacao" name="recomendacao" rows="3" placeholder="Orientações ao prescritor"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-primary">Cadastrar interação</button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="card">
+                <h3>Interações cadastradas no sistema</h3>
+                <div class="table-wrap">
+                    <table class="data-table" id="tabela-interacoes">
+                        <thead>
+                            <tr>
+                                <th>Medicamento A</th>
+                                <th>Medicamento B</th>
+                                <th>Tipo</th>
+                                <th>Risco</th>
+                                <th>Recomendação</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Carregando...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
+    <script src="../js/shell.js"></script>
     <script src="../js/app.js?v=4"></script>
     <script>
         (function() {
@@ -109,7 +131,7 @@
                     return;
                 }
                 container.innerHTML = medicamentos.map(function(m) {
-                    return '<label style="display: inline-flex; align-items: center; gap: 6px; cursor: pointer; padding: 8px 12px; background: #f1f5f9; border-radius: 8px;"><input type="checkbox" name="med" value="' + m.id + '" data-nome="' + escapeHtml(m.nome) + '"> ' + escapeHtml(m.nome) + '</label>';
+                    return '<label class="med-check-pill"><input type="checkbox" name="med" value="' + m.id + '" data-nome="' + escapeHtml(m.nome) + '"> ' + escapeHtml(m.nome) + '</label>';
                 }).join('');
             }
 
@@ -162,7 +184,6 @@
                 container.innerHTML = '<span style="color: var(--risk-severe);">Erro ao carregar medicamentos. Verifique a API PHP / MySQL e o console (F12).</span>';
             });
 
-            // Cadastro de interação: popular selects e enviar formulário
             var formInteracao = document.getElementById('form-interacao');
             var selectMedA = document.getElementById('interacao-med-a');
             var selectMedB = document.getElementById('interacao-med-b');
