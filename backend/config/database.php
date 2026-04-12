@@ -1,17 +1,110 @@
 <?php
 /**
- * Conexão MySQL via PDO (Hostinger).
+ * Conexão MySQL via PDO (Hostinger / local).
+ * Credenciais vêm de variáveis de ambiente ou do arquivo .env na raiz do projeto.
  * Charset utf8mb4 (compatível com utf8; emojis e acentuação).
  */
-function getConnection() {
-    $host = 'localhost';
-    $dbname = 'u632052358_phramguard';
-    $user = 'u632052358_pharmguard1';
-    $password = 'Cn05091@';
+
+/**
+ * Carrega chave=valor do arquivo .env na raiz do projeto (uma vez por requisição).
+ * Não sobrescreve variáveis já definidas no servidor.
+ */
+function ai_guard_load_dotenv(): void
+{
+    static $loaded = false;
+    if ($loaded) {
+        return;
+    }
+    $loaded = true;
+
+    $root = dirname(__DIR__, 2);
+    $path = $root . DIRECTORY_SEPARATOR . '.env';
+    if (!is_readable($path)) {
+        return;
+    }
+
+    $lines = @file($path, FILE_IGNORE_NEW_LINES);
+    if ($lines === false) {
+        return;
+    }
+
+    foreach ($lines as $line) {
+        $line = trim($line);
+        if ($line === '' || (isset($line[0]) && $line[0] === '#')) {
+            continue;
+        }
+        $pos = strpos($line, '=');
+        if ($pos === false) {
+            continue;
+        }
+        $key = trim(substr($line, 0, $pos));
+        $val = trim(substr($line, $pos + 1));
+        if ($key === '') {
+            continue;
+        }
+        if ($val !== '' && isset($val[0])) {
+            if ($val[0] === '"' && substr($val, -1) === '"') {
+                $val = stripcslashes(substr($val, 1, -1));
+            } elseif ($val[0] === "'" && substr($val, -1) === "'") {
+                $val = stripcslashes(substr($val, 1, -1));
+            }
+        }
+        if (getenv($key) === false) {
+            putenv(sprintf('%s=%s', $key, $val));
+            $_ENV[$key] = $val;
+        }
+    }
+}
+
+function getConnection()
+{
+    ai_guard_load_dotenv();
+
+    $host = getenv('DB_HOST');
+    if ($host === false || $host === '') {
+        $host = 'localhost';
+    }
+
+    $port = getenv('DB_PORT');
+    if ($port === false || $port === '') {
+        $port = '3306';
+    }
+
+    $dbname = getenv('DB_NAME');
+    if ($dbname === false) {
+        $dbname = '';
+    }
+
+    $user = getenv('DB_USER');
+    if ($user === false) {
+        $user = '';
+    }
+
+    $password = getenv('DB_PASSWORD');
+    if ($password === false) {
+        $password = '';
+    }
+
+    if ($dbname === '' || $user === '') {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode([
+            'success' => false,
+            'message' => 'Configuração do banco incompleta. Copie .env.example para .env na raiz do projeto e defina DB_NAME e DB_USER (e DB_PASSWORD).',
+        ], JSON_UNESCAPED_UNICODE);
+        exit;
+    }
+
+    $dsn = sprintf(
+        'mysql:host=%s;port=%s;dbname=%s;charset=utf8mb4',
+        $host,
+        $port,
+        $dbname
+    );
 
     try {
         $pdo = new PDO(
-            "mysql:host={$host};dbname={$dbname};charset=utf8",
+            $dsn,
             $user,
             $password,
             [
@@ -21,13 +114,14 @@ function getConnection() {
             ]
         );
         $pdo->exec('SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci');
+
         return $pdo;
     } catch (PDOException $e) {
         http_response_code(500);
         header('Content-Type: application/json; charset=UTF-8');
         echo json_encode([
             'success' => false,
-            'message' => 'Erro ao conectar ao banco. Verifique a configuração.',
+            'message' => 'Erro ao conectar ao banco. Verifique o .env e se o MySQL está acessível.',
             'error'   => $e->getMessage(),
         ], JSON_UNESCAPED_UNICODE);
         exit;
@@ -37,7 +131,8 @@ function getConnection() {
 /**
  * Garante que a tabela pacientes existe com colunas usadas pelo cadastro (inclui cpf).
  */
-function ensurePacientesTable(PDO $conn) {
+function ensurePacientesTable(PDO $conn)
+{
     $conn->exec(
         'CREATE TABLE IF NOT EXISTS pacientes (
           id INT AUTO_INCREMENT PRIMARY KEY,
@@ -81,7 +176,8 @@ function ensurePacientesTable(PDO $conn) {
 /**
  * Colunas extras em medicamentos para a calculadora de dose (idempotente).
  */
-function ensureMedicamentosCalculadoraColumns(PDO $conn) {
+function ensureMedicamentosCalculadoraColumns(PDO $conn)
+{
     $stmts = [
         "ALTER TABLE medicamentos ADD COLUMN dose_mg_kg DECIMAL(8,3) NULL COMMENT 'dose em mg por kg do paciente'",
         "ALTER TABLE medicamentos ADD COLUMN dose_minima DECIMAL(8,2) NULL COMMENT 'mg'",
