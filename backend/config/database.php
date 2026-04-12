@@ -12,7 +12,7 @@ function getConnection() {
         $password = $params['pass'];
     } else {
         $host     = getenv('DB_HOST')     ?: 'localhost';
-        $dbname   = getenv('DB_NAME')     ?: 'farmacia';
+        $dbname   = getenv('DB_NAME')     ?: 'postgres';
         $user     = getenv('DB_USER')     ?: 'postgres';
         $password = getenv('DB_PASSWORD') ?: '';
         $port     = getenv('DB_PORT')     ?: '5432';
@@ -20,14 +20,13 @@ function getConnection() {
 
     try {
         $pdo = new PDO(
-            "pgsql:host={$host};port={$port};dbname={$dbname}",
+            "pgsql:host={$host};port={$port};dbname={$dbname};sslmode=require",
             $user,
             $password,
             [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
-                PDO::ATTR_SSL_CA             => null,
             ]
         );
         return $pdo;
