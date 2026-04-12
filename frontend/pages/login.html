@@ -4,123 +4,527 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - AI Pharma Guard</title>
-    <link rel="stylesheet" href="../css/app.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100dvh;
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0f172a;
+            color: #0f172a;
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Partículas decorativas (blur) */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            width: min(420px, 90vw);
+            height: min(420px, 90vw);
+            top: -12%;
+            right: -8%;
+            background: radial-gradient(circle at 30% 30%, rgba(44, 93, 140, 0.55), rgba(44, 93, 140, 0.08) 55%, transparent 70%);
+            filter: blur(48px);
+            opacity: 0.85;
+        }
+
+        body::after {
+            width: min(360px, 80vw);
+            height: min(360px, 80vw);
+            bottom: -10%;
+            left: -6%;
+            background: radial-gradient(circle at 60% 60%, rgba(61, 125, 110, 0.45), rgba(61, 125, 110, 0.06) 50%, transparent 68%);
+            filter: blur(56px);
+            opacity: 0.75;
+        }
+
+        .lp-dust {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .lp-dust span {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(20px);
+            opacity: 0.2;
+        }
+
+        .lp-dust span:nth-child(1) {
+            width: 120px;
+            height: 120px;
+            background: rgba(148, 163, 184, 0.35);
+            top: 42%;
+            left: 8%;
+        }
+
+        .lp-dust span:nth-child(2) {
+            width: 80px;
+            height: 80px;
+            background: rgba(59, 130, 246, 0.25);
+            top: 18%;
+            left: 22%;
+        }
+
+        .lp-dust span:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            background: rgba(16, 185, 129, 0.15);
+            bottom: 28%;
+            right: 12%;
+        }
+
+        .lp-shell {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100dvh;
+            min-height: 100vh;
+            padding: 24px 16px;
+        }
+
+        .lp-card {
+            width: 90%;
+            max-width: 420px;
+            padding: 48px 40px;
+            border-radius: 20px;
+            background: #ffffff;
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        .lp-brand {
+            text-align: center;
+        }
+
+        .lp-logo {
+            display: block;
+            margin: 0 auto;
+        }
+
+        .lp-title-brand {
+            margin: 12px 0 0;
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+        }
+
+        .lp-badge {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 3px 10px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #0369a1;
+            background: #f0f9ff;
+            border-radius: 20px;
+            border: 1px solid #bae6fd;
+        }
+
+        .lp-rule {
+            border-top: 1px solid #f1f5f9;
+            margin: 24px 0;
+        }
+
+        .lp-heading-main {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.02em;
+            line-height: 1.25;
+        }
+
+        .lp-heading-sub {
+            margin: 4px 0 0;
+            font-size: 0.875rem;
+            color: #64748b;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .lp-form {
+            margin-top: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .lp-field label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+
+        .lp-label-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 6px;
+        }
+
+        .lp-label-row label {
+            margin-bottom: 0;
+        }
+
+        .lp-forgot {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #2c5d8c;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .lp-forgot:hover {
+            text-decoration: underline;
+            color: #234a6e;
+        }
+
+        .lp-input-wrap {
+            position: relative;
+        }
+
+        .lp-input-wrap--pwd .lp-input {
+            padding-right: 44px;
+        }
+
+        .lp-ico {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 16px;
+            height: 16px;
+            color: #94a3b8;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lp-ico svg {
+            width: 16px;
+            height: 16px;
+            display: block;
+        }
+
+        .lp-input {
+            width: 100%;
+            padding: 13px 14px 13px 42px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            color: #0f172a;
+            background: #fafafa;
+            font-family: inherit;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .lp-input::placeholder {
+            color: #94a3b8;
+        }
+
+        .lp-input:hover {
+            border-color: #cbd5e1;
+            background: #fff;
+        }
+
+        .lp-input:focus {
+            outline: none;
+            border-color: #2c5d8c;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(44, 93, 140, 0.15);
+        }
+
+        .lp-toggle {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #64748b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .lp-toggle:hover {
+            background: #f1f5f9;
+            color: #2c5d8c;
+        }
+
+        .lp-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .lp-actions {
+            margin-top: 8px;
+        }
+
+        .lp-submit {
+            width: 100%;
+            min-height: 48px;
+            padding: 0 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            color: #fff;
+            background: linear-gradient(180deg, #3d7d6e 0%, #2c5d8c 55%, #234a6e 100%);
+            box-shadow:
+                0 1px 2px rgba(0, 0, 0, 0.12),
+                0 8px 24px rgba(44, 93, 140, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+
+        .lp-submit:hover:not(:disabled) {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            box-shadow:
+                0 4px 12px rgba(0, 0, 0, 0.15),
+                0 12px 32px rgba(44, 93, 140, 0.4);
+        }
+
+        .lp-submit:active:not(:disabled) {
+            transform: translateY(0);
+            filter: brightness(0.98);
+        }
+
+        .lp-submit:disabled {
+            opacity: 0.75;
+            cursor: wait;
+        }
+
+        .lp-submit-inner {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .lp-spinner {
+            width: 18px;
+            height: 18px;
+            animation: lp-spin 0.65s linear infinite;
+        }
+
+        @keyframes lp-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .login-alert {
+            margin-top: 16px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            line-height: 1.45;
+        }
+
+        .login-alert--err {
+            background: #fef2f2;
+            border: 1px solid rgba(220, 38, 38, 0.25);
+            color: #b91c1c;
+        }
+
+        .login-alert--ok {
+            background: #f0fdf4;
+            border: 1px solid rgba(34, 197, 94, 0.3);
+            color: #15803d;
+        }
+
+        .lp-or {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 24px 0 16px;
+            font-size: 0.6875rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #94a3b8;
+        }
+
+        .lp-or::before,
+        .lp-or::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: #e2e8f0;
+        }
+
+        .lp-cta {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 12px 16px;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #2c5d8c;
+            text-decoration: none;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background: #f8fafc;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .lp-cta:hover {
+            background: #f0f9ff;
+            border-color: #bae6fd;
+        }
+
+        .lp-disclaimer {
+            margin: 24px 0 0;
+            padding-top: 20px;
+            border-top: 1px solid #f1f5f9;
+            font-size: 0.6875rem;
+            line-height: 1.55;
+            color: #94a3b8;
+            text-align: center;
+        }
+
+        .lp-disclaimer a {
+            color: #64748b;
+            text-decoration: underline;
+        }
+
+        .lp-disclaimer a:hover {
+            color: #475569;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        @media (max-width: 400px) {
+            .lp-card {
+                padding: 36px 24px;
+            }
+        }
+    </style>
 </head>
-<body class="login-page-body login-page-body--v2">
-    <div class="login-page-layout login-page-layout--split">
-        <!-- Coluna esquerda: marca + benefícios -->
-        <aside class="login-brand-panel login-brand-panel--spec" aria-label="Sobre o produto">
-            <div class="login-brand-panel__mesh" aria-hidden="true"></div>
-            <div class="login-brand-panel__inner">
-                <div class="login-brand-logo" aria-hidden="true">
-                    <svg class="login-brand-logo__svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" fill="none" aria-hidden="true">
-                        <defs>
-                            <linearGradient id="login-shield-grad" x1="8" y1="4" x2="48" y2="52" gradientUnits="userSpaceOnUse">
-                                <stop stop-color="#ffffff" stop-opacity="0.95"/>
-                                <stop offset="1" stop-color="#e0f2fe" stop-opacity="0.9"/>
-                            </linearGradient>
-                        </defs>
-                        <path fill="url(#login-shield-grad)" d="M28 4 8 12v14c0 11.05 7.7 21.35 20 24 12.3-2.65 20-12.95 20-24V12L28 4Z" opacity=".98"/>
-                        <path stroke="rgba(255,255,255,0.85)" stroke-width="1.5" d="M28 4 8 12v14c0 11.05 7.7 21.35 20 24 12.3-2.65 20-12.95 20-24V12L28 4Z"/>
-                        <path stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" d="M28 17v14M21 24h14"/>
-                    </svg>
-                </div>
-                <h1 class="login-brand-name">AI Pharma Guard</h1>
-                <p class="login-brand-tagline">Plataforma inteligente para gestão farmacêutica segura</p>
-                <ul class="login-benefits">
-                    <li class="login-benefits__item">
-                        <span class="login-benefits__check" aria-hidden="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
-                        <span>Detecção de interações medicamentosas com IA</span>
-                    </li>
-                    <li class="login-benefits__item">
-                        <span class="login-benefits__check" aria-hidden="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
-                        <span>Gestão multi-farmácia em tempo real</span>
-                    </li>
-                    <li class="login-benefits__item">
-                        <span class="login-benefits__check" aria-hidden="true">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                        </span>
-                        <span>Prontuários digitais seguros e auditáveis</span>
-                    </li>
-                </ul>
-                <p class="login-brand-foot">Tecnologia desenvolvida para farmacêuticos</p>
+<body>
+    <div class="lp-dust" aria-hidden="true">
+        <span></span><span></span><span></span>
+    </div>
+    <div class="lp-shell">
+        <div class="lp-card">
+            <div class="lp-brand">
+                <svg class="lp-logo" width="52" height="52" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="lp-shield-grad" x1="2" y1="2" x2="22" y2="22" gradientUnits="userSpaceOnUse">
+                            <stop offset="0" stop-color="#2c5d8c"/>
+                            <stop offset="1" stop-color="#3d7d6e"/>
+                        </linearGradient>
+                    </defs>
+                    <path fill="url(#lp-shield-grad)" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                    <path fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1" d="M12 2 4 5.5V12c0 5 3.5 9.7 8 11 4.5-1.3 8-6 8-11V5.5L12 2Z"/>
+                    <path stroke="#ffffff" stroke-width="1.9" stroke-linecap="round" d="M12 9v6M9 12h6"/>
+                </svg>
+                <h1 class="lp-title-brand">AI Pharma Guard</h1>
+                <span class="lp-badge">Plataforma Farmacêutica</span>
             </div>
-        </aside>
 
-        <!-- Coluna direita: formulário -->
-        <div class="login-form-panel login-form-panel--white">
-            <div class="login-page-shell">
-                <div class="login-card--premium login-card--v2">
-                    <header class="login-card-header--v2">
-                        <h2 class="login-welcome">Bem-vindo de volta <span class="login-welcome__emoji" aria-hidden="true">👋</span></h2>
-                        <p class="login-subtitle">Entre na sua conta</p>
-                    </header>
+            <div class="lp-rule" role="presentation"></div>
 
-                    <form id="login-form" class="login-form login-form--v2" novalidate>
-                        <div class="login-field-v2">
-                            <label class="login-label" for="email">E-mail</label>
-                            <div class="login-input-wrap">
-                                <span class="login-input-wrap__icon" aria-hidden="true">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                                </span>
-                                <input type="email" id="email" name="email" required placeholder="nome@suafarmacia.com.br" autocomplete="username" class="login-input login-input--inset">
-                            </div>
-                        </div>
-
-                        <div class="login-field-v2">
-                            <div class="login-label-row">
-                                <label class="login-label" for="senha">Senha</label>
-                                <a href="esqueci_senha.html" class="login-link-forgot">Esqueceu sua senha?</a>
-                            </div>
-                            <div class="login-input-wrap">
-                                <span class="login-input-wrap__icon" aria-hidden="true">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                                </span>
-                                <input type="password" id="senha" name="senha" required placeholder="Digite sua senha" autocomplete="current-password" class="login-input login-input--inset">
-                                <button type="button" class="login-pass-toggle" id="login-pass-toggle" aria-label="Mostrar senha" aria-pressed="false">
-                                    <!-- olho aberto -->
-                                    <svg class="login-pass-toggle__show" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                                    <!-- olho cortado (oculto) -->
-                                    <svg class="login-pass-toggle__hide hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="login-actions login-actions--v2">
-                            <button type="submit" class="btn btn-primary login-submit login-submit--v2" id="login-submit">
-                                <span class="login-submit-idle">
-                                    <span class="login-submit-label">Entrar</span>
-                                </span>
-                                <span class="login-submit-loading hidden" aria-hidden="true">
-                                    <svg class="login-spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="32" stroke-dashoffset="12" opacity="0.9"/>
-                                    </svg>
-                                    <span>Entrando...</span>
-                                </span>
-                            </button>
-                        </div>
-                    </form>
-
-                    <div id="login-alert" class="login-alert hidden" role="alert"></div>
-
-                    <div class="login-or-divider" role="presentation">
-                        <span>ou</span>
-                    </div>
-
-                    <div class="login-secondary-cta">
-                        <a href="cadastro.html" class="login-register-link">Cadastrar nova farmácia</a>
-                    </div>
-
-                    <p class="login-disclaimer">
-                        Ao usar o AI Pharma Guard, você concorda com os
-                        <a href="termos.html">Termos de Uso</a>. Ferramenta de apoio farmacêutico.
-                    </p>
-                </div>
+            <div>
+                <h2 class="lp-heading-main">Acesse sua conta</h2>
+                <p class="lp-heading-sub">Bem-vindo de volta. Insira suas credenciais.</p>
             </div>
+
+            <form id="login-form" class="lp-form" novalidate>
+                <div class="lp-field">
+                    <label for="email">E-mail</label>
+                    <div class="lp-input-wrap">
+                        <span class="lp-ico" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                        </span>
+                        <input type="email" id="email" name="email" required placeholder="nome@suafarmacia.com.br" autocomplete="username" class="lp-input">
+                    </div>
+                </div>
+
+                <div class="lp-field">
+                    <div class="lp-label-row">
+                        <label for="senha">Senha</label>
+                        <a href="esqueci_senha.html" class="lp-forgot">Esqueceu sua senha?</a>
+                    </div>
+                    <div class="lp-input-wrap lp-input-wrap--pwd">
+                        <span class="lp-ico" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        </span>
+                        <input type="password" id="senha" name="senha" required placeholder="Digite sua senha" autocomplete="current-password" class="lp-input">
+                        <button type="button" class="lp-toggle" id="login-pass-toggle" aria-label="Mostrar senha" aria-pressed="false">
+                            <svg class="login-pass-toggle__show" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            <svg class="login-pass-toggle__hide hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lp-actions">
+                    <button type="submit" class="lp-submit" id="login-submit">
+                        <span class="login-submit-idle lp-submit-inner">
+                            <span class="login-submit-label">Entrar</span>
+                        </span>
+                        <span class="login-submit-loading hidden lp-submit-inner" aria-hidden="true">
+                            <svg class="lp-spinner" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-dasharray="32" stroke-dashoffset="10" opacity="0.95"/>
+                            </svg>
+                            <span>Entrando...</span>
+                        </span>
+                    </button>
+                </div>
+            </form>
+
+            <div id="login-alert" class="login-alert hidden" role="alert"></div>
+
+            <div class="lp-or" role="presentation"><span>ou</span></div>
+            <a href="cadastro.html" class="lp-cta">Cadastrar nova farmácia</a>
+
+            <p class="lp-disclaimer">
+                Ao usar o AI Pharma Guard, você concorda com os
+                <a href="termos.html">Termos de Uso</a>. Ferramenta de apoio farmacêutico.
+            </p>
         </div>
     </div>
 
@@ -166,7 +570,6 @@
 
             function setLoading(on) {
                 btn.disabled = !!on;
-                btn.classList.toggle('is-loading', !!on);
                 idle.classList.toggle('hidden', !!on);
                 loading.classList.toggle('hidden', !on);
             }
