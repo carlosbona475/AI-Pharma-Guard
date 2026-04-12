@@ -1,6 +1,6 @@
 /**
  * AI Pharma Guard - API e utilitários
- * Conexão com Supabase via backend PHP (backend/api/*.php).
+ * Chamadas ao backend PHP (MySQL via PDO) — backend/api.php e backend/api/*.php.
  *
  * API_BASE: defina window.API_BASE antes de carregar para fixar.
  * Produção (Render): https://SEU-BACKEND.onrender.com/backend

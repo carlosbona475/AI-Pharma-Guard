@@ -2,7 +2,7 @@
 -- AI Pharma Guard - Seed de interações medicamentosas (literatura oficial)
 -- ANVISA, Manual MSD, ICTQ, SES-DF. Interações globais (visíveis a todas as farmácias).
 -- =============================================================================
--- Uso: execute no Supabase (PostgreSQL) ou adapte para MySQL.
+-- Uso legado (PostgreSQL); para MySQL use database/mysql_schema.sql e adapte inserts.
 -- Tabela interacoes_globais: por nome de medicamento (não depende de IDs de medicamentos).
 -- =============================================================================
 

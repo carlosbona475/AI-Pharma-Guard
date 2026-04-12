@@ -68,7 +68,7 @@
                     console.error('[Dashboard] Erro ao carregar estatísticas:', err);
                     statP.textContent = statM.textContent = statI.textContent = '—';
                     if (document.querySelector('.page-subtitle')) {
-                        document.querySelector('.page-subtitle').innerHTML = '<span style="color: var(--risk-severe);">Erro ao conectar ao banco. Verifique a API e as variáveis de ambiente (Supabase).</span>';
+                        document.querySelector('.page-subtitle').innerHTML = '<span style="color: var(--risk-severe);">Erro ao conectar ao banco. Verifique a API PHP e o MySQL.</span>';
                     }
                 });
             } catch (e) {

@@ -1,8 +1,7 @@
 FROM php:8.2-apache
 
-# PostgreSQL (Supabase); instala pdo_pgsql
-RUN apt-get update && apt-get install -y libpq-dev \
-  && docker-php-ext-install pdo pdo_pgsql
+# MySQL (Hostinger / local); PDO MySQL
+RUN docker-php-ext-install pdo pdo_mysql mysqli
 
 COPY . /var/www/html/
 

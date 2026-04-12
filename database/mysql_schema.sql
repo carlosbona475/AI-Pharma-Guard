@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS pacientes (
   farmacia_id INT NOT NULL,
   nome VARCHAR(100) NOT NULL,
   idade INT NOT NULL,
+  cpf VARCHAR(20) DEFAULT NULL,
   sexo VARCHAR(20) DEFAULT 'masculino',
   doencas TEXT,
   medicamentos_usados TEXT,
