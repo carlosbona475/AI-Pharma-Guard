@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../css/app.css">
 </head>
 <body>
+    <script src="../js/auth-guard.js"></script>
     <header class="app-topbar">
         <button type="button" class="sidebar-toggle" aria-label="Abrir menu">&#9776;</button>
         <div class="app-topbar__brand">
@@ -15,7 +16,8 @@
         </div>
         <span class="app-topbar__spacer"></span>
         <div class="app-topbar__actions">
-            <span class="user-pill" title="Área autenticada"><span>&#128100;</span> Equipe</span>
+            <span class="user-pill" title="Sessão ativa"><span class="user-pill__ico" aria-hidden="true"></span> Equipe</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-logout" title="Encerrar sessão">Sair</button>
         </div>
     </header>
     <div class="app-overlay" aria-hidden="true"></div>
@@ -23,14 +25,14 @@
         <nav>
             <div class="nav-title">Navegação</div>
             <ul>
-                <li><a href="dashboard.html" class="active"><span class="nav-icon">&#128202;</span><span>Dashboard</span></a></li>
-                <li><a href="pacientes.html"><span class="nav-icon">&#128100;</span><span>Pacientes</span></a></li>
-                <li><a href="../../pacientes.php"><span class="nav-icon">&#128203;</span><span>Cadastro (PHP)</span></a></li>
-                <li><a href="medicamentos.html"><span class="nav-icon">&#128138;</span><span>Medicamentos</span></a></li>
-                <li><a href="interacoes.html"><span class="nav-icon">&#9888;</span><span>Interações</span></a></li>
-                <li><a href="relatorios.html"><span class="nav-icon">&#128203;</span><span>Relatórios</span></a></li>
-                <li><a href="login.html"><span class="nav-icon">&#128274;</span><span>Login</span></a></li>
-                <li><a href="cadastro.html"><span class="nav-icon">&#127970;</span><span>Cadastrar Farmácia</span></a></li>
+                <li><a href="dashboard.html" class="active"><span class="nav-icon nav-icon--chart" aria-hidden="true"></span><span>Dashboard</span></a></li>
+                <li><a href="pacientes.html"><span class="nav-icon nav-icon--users" aria-hidden="true"></span><span>Pacientes</span></a></li>
+                <li><a href="../../pacientes.php"><span class="nav-icon nav-icon--clipboard" aria-hidden="true"></span><span>Cadastro (PHP)</span></a></li>
+                <li><a href="medicamentos.html"><span class="nav-icon nav-icon--pill" aria-hidden="true"></span><span>Medicamentos</span></a></li>
+                <li><a href="interacoes.html"><span class="nav-icon nav-icon--alert" aria-hidden="true"></span><span>Interações</span></a></li>
+                <li><a href="relatorios.html"><span class="nav-icon nav-icon--report" aria-hidden="true"></span><span>Relatórios</span></a></li>
+                <li><a href="login.html"><span class="nav-icon nav-icon--lock" aria-hidden="true"></span><span>Login</span></a></li>
+                <li><a href="cadastro.html"><span class="nav-icon nav-icon--hospital" aria-hidden="true"></span><span>Cadastrar Farmácia</span></a></li>
             </ul>
         </nav>
     </aside>
@@ -71,6 +73,12 @@
     <script src="../js/shell.js"></script>
     <script src="../js/app.js?v=4"></script>
     <script>
+        document.getElementById('btn-logout').addEventListener('click', function () {
+            fetch('/backend/auth/logout.php', { method: 'GET', credentials: 'same-origin' })
+                .finally(function () {
+                    window.location.href = 'login.html';
+                });
+        });
         (function() {
             var statP = document.getElementById('stat-pacientes');
             var statM = document.getElementById('stat-medicamentos');

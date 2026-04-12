@@ -6,65 +6,106 @@
     <title>Login - AI Pharma Guard</title>
     <link rel="stylesheet" href="../css/app.css">
 </head>
-<body>
-    <main class="app-main" style="margin-left: 0; margin-top: 0; max-width: 480px; margin: 48px auto; padding: 24px;">
-        <h1 class="page-title">Login da Farmácia</h1>
-        <div class="card">
-            <form id="login-form" class="form-grid">
-                <div class="form-group" style="grid-column: 1 / -1;">
+<body class="login-page-body">
+    <div class="login-page-shell">
+        <div class="login-brand-block">
+            <div class="login-logo-mark" aria-hidden="true"></div>
+            <h1 class="login-title">AI Pharma Guard</h1>
+            <p class="login-tagline">Acesso seguro ao painel da farmácia</p>
+        </div>
+
+        <div class="card login-card">
+            <h2 class="login-card-heading">Entrar</h2>
+            <p class="login-card-hint">Use o e-mail e a senha cadastrados para sua farmácia.</p>
+
+            <form id="login-form" class="form-stack login-form" novalidate>
+                <div class="input-group">
                     <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" required placeholder="seu@email.com">
+                    <input type="email" id="email" name="email" required placeholder="seu@email.com" autocomplete="username" class="login-input">
                 </div>
-                <div class="form-group" style="grid-column: 1 / -1;">
+                <div class="input-group">
                     <label for="senha">Senha</label>
-                    <input type="password" id="senha" name="senha" required placeholder="Senha">
+                    <input type="password" id="senha" name="senha" required placeholder="Sua senha" autocomplete="current-password" class="login-input">
                 </div>
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary">Entrar</button>
+                <div class="login-actions">
+                    <button type="submit" class="btn btn-primary login-submit" id="login-submit">
+                        <span class="login-submit-label">Entrar</span>
+                        <span class="login-submit-loading hidden" aria-hidden="true">Entrando...</span>
+                    </button>
                 </div>
             </form>
-            <p style="margin-top: 12px; color: var(--text-muted);">
+
+            <div id="login-alert" class="login-alert hidden" role="alert"></div>
+
+            <p class="login-links">
                 <a href="esqueci_senha.html">Esqueceu sua senha?</a>
             </p>
-            <p style="margin-top: 8px; color: var(--text-muted);">
-                Não tem conta? <a href="cadastro.html">Crie sua farmácia</a>
+            <p class="login-links">
+                Não tem conta? <a href="cadastro.html">Cadastre sua farmácia</a>
             </p>
-            <p style="margin-top: 12px; color: var(--text-muted); font-size: 12px; text-align: center;">
-                Ao usar o AI Pharma Guard, você concorda com nossos
-                <a href="termos.html">Termos de Uso</a>. Este sistema é uma
-                ferramenta de apoio farmacêutico e não substitui o julgamento
-                clínico profissional.
+            <p class="login-disclaimer">
+                Ao usar o AI Pharma Guard, você concorda com os
+                <a href="termos.html">Termos de Uso</a>. Ferramenta de apoio farmacêutico.
             </p>
-            <p id="login-erro" style="color: var(--risk-severe); margin-top: 8px;"></p>
         </div>
-    </main>
+    </div>
+
     <script src="../js/fetch-helpers.js"></script>
     <script>
-        document.getElementById('login-form').addEventListener('submit', function (e) {
-            e.preventDefault();
-            var email = document.getElementById('email').value;
-            var senha = document.getElementById('senha').value;
-            var msgEl = document.getElementById('login-erro');
-            msgEl.textContent = '';
+        (function () {
+            var form = document.getElementById('login-form');
+            var btn = document.getElementById('login-submit');
+            var labelOk = btn.querySelector('.login-submit-label');
+            var labelLoad = btn.querySelector('.login-submit-loading');
+            var alertEl = document.getElementById('login-alert');
 
-            fetch('/backend/login.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email, senha: senha })
-            })
-            .then(parseJsonFetchResponse)
-            .then(function(data) {
-                if (data.success) {
-                    window.location.href = 'dashboard.html';
-                } else {
-                    msgEl.textContent = data.message || 'Login inválido';
+            function showAlert(msg, isError) {
+                alertEl.textContent = msg || '';
+                alertEl.classList.remove('hidden', 'login-alert--ok', 'login-alert--err');
+                if (!msg) {
+                    alertEl.classList.add('hidden');
+                    return;
                 }
-            })
-            .catch(function(err) {
-                console.error('Erro no login:', err);
-                msgEl.textContent = err.message || 'Erro ao conectar. Verifique se o servidor está rodando.';
+                alertEl.classList.add(isError ? 'login-alert--err' : 'login-alert--ok');
+            }
+
+            function setLoading(on) {
+                btn.disabled = !!on;
+                labelOk.classList.toggle('hidden', !!on);
+                labelLoad.classList.toggle('hidden', !on);
+            }
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var email = document.getElementById('email').value.trim();
+                var senha = document.getElementById('senha').value;
+                showAlert('');
+                setLoading(true);
+
+                fetch('/backend/auth/login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({ email: email, senha: senha })
+                })
+                    .then(parseJsonFetchResponse)
+                    .then(function (data) {
+                        if (data.success) {
+                            showAlert('Login OK! Redirecionando...', false);
+                            window.location.href = 'dashboard.html';
+                        } else {
+                            showAlert(data.message || 'Não foi possível entrar.', true);
+                        }
+                    })
+                    .catch(function (err) {
+                        console.error('Erro no login:', err);
+                        showAlert(err.message || 'Erro ao conectar. Tente novamente.', true);
+                    })
+                    .finally(function () {
+                        setLoading(false);
+                    });
             });
-        });
+        })();
     </script>
 </body>
 </html>

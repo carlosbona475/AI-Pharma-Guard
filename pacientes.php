@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/backend/auth/session.php';
+requireAuthRedirect('/frontend/pages/login.html');
 include 'header.php';
 ?>
 <!DOCTYPE html>
@@ -18,7 +20,8 @@ include 'header.php';
         </div>
         <span class="app-topbar__spacer"></span>
         <div class="app-topbar__actions">
-            <span class="user-pill" title="Formulário servidor"><span>&#128203;</span> PHP + MySQL</span>
+            <span class="user-pill" title="Sessão ativa"><span class="user-pill__ico" aria-hidden="true"></span> Conta</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-logout" title="Encerrar sessão">Sair</button>
         </div>
     </header>
     <div class="app-overlay" aria-hidden="true"></div>
@@ -26,14 +29,14 @@ include 'header.php';
         <nav>
             <div class="nav-title">Navegação</div>
             <ul>
-                <li><a href="frontend/pages/dashboard.html"><span class="nav-icon">&#128202;</span><span>Dashboard</span></a></li>
-                <li><a href="frontend/pages/pacientes.html"><span class="nav-icon">&#128100;</span><span>Pacientes</span></a></li>
-                <li><a href="pacientes.php" class="active"><span class="nav-icon">&#128203;</span><span>Cadastro (PHP)</span></a></li>
-                <li><a href="frontend/pages/medicamentos.html"><span class="nav-icon">&#128138;</span><span>Medicamentos</span></a></li>
-                <li><a href="frontend/pages/interacoes.html"><span class="nav-icon">&#9888;</span><span>Interações</span></a></li>
-                <li><a href="frontend/pages/relatorios.html"><span class="nav-icon">&#128203;</span><span>Relatórios</span></a></li>
-                <li><a href="frontend/pages/login.html"><span class="nav-icon">&#128274;</span><span>Login</span></a></li>
-                <li><a href="frontend/pages/cadastro.html"><span class="nav-icon">&#127970;</span><span>Cadastrar Farmácia</span></a></li>
+                <li><a href="frontend/pages/dashboard.html"><span class="nav-icon nav-icon--chart" aria-hidden="true"></span><span>Dashboard</span></a></li>
+                <li><a href="frontend/pages/pacientes.html"><span class="nav-icon nav-icon--users" aria-hidden="true"></span><span>Pacientes</span></a></li>
+                <li><a href="pacientes.php" class="active"><span class="nav-icon nav-icon--clipboard" aria-hidden="true"></span><span>Cadastro (PHP)</span></a></li>
+                <li><a href="frontend/pages/medicamentos.html"><span class="nav-icon nav-icon--pill" aria-hidden="true"></span><span>Medicamentos</span></a></li>
+                <li><a href="frontend/pages/interacoes.html"><span class="nav-icon nav-icon--alert" aria-hidden="true"></span><span>Interações</span></a></li>
+                <li><a href="frontend/pages/relatorios.html"><span class="nav-icon nav-icon--report" aria-hidden="true"></span><span>Relatórios</span></a></li>
+                <li><a href="frontend/pages/login.html"><span class="nav-icon nav-icon--lock" aria-hidden="true"></span><span>Login</span></a></li>
+                <li><a href="frontend/pages/cadastro.html"><span class="nav-icon nav-icon--hospital" aria-hidden="true"></span><span>Cadastrar Farmácia</span></a></li>
             </ul>
         </nav>
     </aside>
@@ -86,8 +89,8 @@ include 'header.php';
             <div class="card">
                 <h3>Lista de pacientes</h3>
                 <p style="color: var(--text-muted); margin: 0 0 16px;">Esta tabela pode ser preenchida via API <code style="background: var(--primary-soft); padding: 2px 8px; border-radius: 6px;">listar_pacientes</code> ou painel futuro.</p>
-                <div class="table-wrap">
-                    <table class="data-table">
+                <div class="table-wrap table-wrap--patients">
+                    <table class="data-table data-table--patients">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -110,5 +113,13 @@ include 'header.php';
         </div>
     </main>
     <script src="frontend/js/shell.js"></script>
+    <script>
+        document.getElementById('btn-logout').addEventListener('click', function () {
+            fetch('/backend/auth/logout.php', { method: 'GET', credentials: 'same-origin' })
+                .finally(function () {
+                    window.location.href = 'frontend/pages/login.html';
+                });
+        });
+    </script>
 </body>
 </html>

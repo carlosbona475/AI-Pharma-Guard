@@ -48,8 +48,8 @@ require_once __DIR__ . '/db.php';
 $conn = getConnection();
 ensurePacientesTable($conn);
 
-// SaaS multi-farmácia: usar farmácia da sessão ou padrão 1 (evita NOT NULL no INSERT)
-$farmacia_id = isset($_SESSION['farmacia_id']) ? (int) $_SESSION['farmacia_id'] : 1;
+// SaaS multi-farmácia: farmácia da sessão (login) ou padrão 1 (evita NOT NULL no INSERT)
+$farmacia_id = (int) ($_SESSION['farmacia_id'] ?? 1);
 
 /**
  * Normaliza o nível de risco vindo do banco (baixo/medio/alto ou LEVE/MODERADA/GRAVE)

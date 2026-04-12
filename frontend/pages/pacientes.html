@@ -8,20 +8,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+    <script src="../js/auth-guard.js"></script>
     <header class="app-topbar">
-        <h1>AI Pharma Guard</h1>
+        <button type="button" class="sidebar-toggle" aria-label="Abrir menu">&#9776;</button>
+        <div class="app-topbar__brand">
+            <h1>AI Pharma Guard</h1>
+            <span class="app-topbar__tagline">Gestão clínica inteligente</span>
+        </div>
+        <span class="app-topbar__spacer"></span>
+        <div class="app-topbar__actions">
+            <span class="user-pill" title="Sessão ativa"><span class="user-pill__ico" aria-hidden="true"></span> Equipe</span>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-logout" title="Encerrar sessão">Sair</button>
+        </div>
     </header>
+    <div class="app-overlay" aria-hidden="true"></div>
     <aside class="app-sidebar">
         <nav>
             <div class="nav-title">Navegação</div>
             <ul>
-                <li><a href="dashboard.html"><span class="nav-icon">&#128202;</span><span>Dashboard</span></a></li>
-                <li><a href="pacientes.html" class="active"><span class="nav-icon">&#128100;</span><span>Pacientes</span></a></li>
-                <li><a href="medicamentos.html"><span class="nav-icon">&#128138;</span><span>Medicamentos</span></a></li>
-                <li><a href="interacoes.html"><span class="nav-icon">&#9888;</span><span>Interações</span></a></li>
-                <li><a href="relatorios.html"><span class="nav-icon">&#128203;</span><span>Relatórios</span></a></li>
-                <li><a href="login.html"><span class="nav-icon">&#128274;</span><span>Login</span></a></li>
-                <li><a href="cadastro.html"><span class="nav-icon">&#127970;</span><span>Cadastrar Farmácia</span></a></li>
+                <li><a href="dashboard.html"><span class="nav-icon nav-icon--chart" aria-hidden="true"></span><span>Dashboard</span></a></li>
+                <li><a href="pacientes.html" class="active"><span class="nav-icon nav-icon--users" aria-hidden="true"></span><span>Pacientes</span></a></li>
+                <li><a href="../../pacientes.php"><span class="nav-icon nav-icon--clipboard" aria-hidden="true"></span><span>Cadastro (PHP)</span></a></li>
+                <li><a href="medicamentos.html"><span class="nav-icon nav-icon--pill" aria-hidden="true"></span><span>Medicamentos</span></a></li>
+                <li><a href="interacoes.html"><span class="nav-icon nav-icon--alert" aria-hidden="true"></span><span>Interações</span></a></li>
+                <li><a href="relatorios.html"><span class="nav-icon nav-icon--report" aria-hidden="true"></span><span>Relatórios</span></a></li>
+                <li><a href="login.html"><span class="nav-icon nav-icon--lock" aria-hidden="true"></span><span>Login</span></a></li>
+                <li><a href="cadastro.html"><span class="nav-icon nav-icon--hospital" aria-hidden="true"></span><span>Cadastrar Farmácia</span></a></li>
             </ul>
         </nav>
     </aside>
@@ -89,8 +101,8 @@
 
         <div class="card">
             <h3>Pacientes cadastrados</h3>
-            <div class="table-wrap">
-                <table class="data-table" id="tabela-pacientes">
+            <div class="table-wrap table-wrap--patients">
+                <table class="data-table data-table--patients" id="tabela-pacientes">
                     <thead>
                         <tr>
                             <th>ID</th>
@@ -99,7 +111,7 @@
                             <th>Sexo</th>
                             <th>Doencas</th>
                             <th>Medicamentos em uso</th>
-                            <th>Ações</th>
+                            <th class="data-table__col-actions">Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -114,8 +126,15 @@
             </div>
         </div>
     </main>
+    <script src="../js/shell.js"></script>
     <script src="../js/app.js?v=3"></script>
     <script>
+        document.getElementById('btn-logout').addEventListener('click', function () {
+            fetch('/backend/auth/logout.php', { method: 'GET', credentials: 'same-origin' })
+                .finally(function () {
+                    window.location.href = 'login.html';
+                });
+        });
         (function() {
             var form = document.getElementById('form-paciente');
             var tbody = document.querySelector('#tabela-pacientes tbody');
@@ -154,8 +173,10 @@
                                 '<td>' + (p.sexo || '-') + '</td>' +
                                 '<td>' + escapeHtml(p.doencas || '-') + '</td>' +
                                 '<td>' + escapeHtml(p.medicamentos_usados || '-') + '</td>' +
-                                '<td><button type="button" class="btn btn-secondary btn-sm" onclick="analisarRiscoPaciente(' + p.id + ', \'' + (p.nome ? String(p.nome).replace(/'/g, "\\'") : '') + '\')">Analisar risco clínico</button> ' +
-                                '<button type="button" onclick="exportarPDF(' + p.id + ')" class="btn btn-sm btn-export-pdf" title="Exportar prontuário em PDF">Exportar PDF</button></td>' +
+                                '<td class="data-table__actions"><span class="table-actions">' +
+                                '<button type="button" class="btn btn-secondary btn-sm" onclick="analisarRiscoPaciente(' + p.id + ', \'' + (p.nome ? String(p.nome).replace(/'/g, "\\'") : '') + '\')">Analisar risco clínico</button>' +
+                                '<button type="button" onclick="exportarPDF(' + p.id + ')" class="btn btn-sm btn-export-pdf" title="Exportar prontuário em PDF">Exportar PDF</button>' +
+                                '</span></td>' +
                                 '</tr>';
                         }).join('');
                     }
@@ -245,7 +266,7 @@
                     banner.classList.remove('hidden');
                     if (r.alerta === true) {
                         banner.className = 'alerta-banner alerta-banner--vermelho';
-                        banner.innerHTML = '⚠️ ' + (r.mensagem || 'Paciente possui alergia registrada a este medicamento.');
+                        banner.innerHTML = '<strong>Atenção:</strong> ' + (r.mensagem || 'Paciente possui alergia registrada a este medicamento.');
                     } else {
                         banner.className = 'alerta-banner alerta-banner--verde';
                         banner.innerHTML = '✅ ' + (r.mensagem || 'Nenhuma alergia encontrada para este medicamento.');
@@ -348,7 +369,7 @@
                         }
 
                         doc.setFontSize(16);
-                        doc.setTextColor(37, 99, 235);
+                        doc.setTextColor(44, 93, 140);
                         doc.text('AI Pharma Guard — Prontuário Farmacêutico', margem, y);
                         y += 10;
                         doc.setFontSize(9);

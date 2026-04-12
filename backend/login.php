@@ -49,6 +49,8 @@ if (empty($row['ativo'])) {
     ], 403);
 }
 
-$_SESSION['farmacia_id'] = (int) $row['id'];
+$id = (int) $row['id'];
+$_SESSION['usuario_id']   = $id;
+$_SESSION['farmacia_id'] = $id;
 
 sendJson(['success' => true]);

@@ -47,7 +47,8 @@
      * fetch + validação HTTP + parse JSON seguro (evita "Unexpected token '<'").
      */
     function fetchJson(url, fetchOpts) {
-        return fetch(url, fetchOpts || {})
+        var opts = Object.assign({ credentials: 'same-origin' }, fetchOpts || {});
+        return fetch(url, opts)
             .then(function (res) {
                 return res.text().then(function (text) {
                     var data;
