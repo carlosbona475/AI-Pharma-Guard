@@ -5,6 +5,175 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Medicamentos - AI Pharma Guard</title>
     <link rel="stylesheet" href="../css/app.css">
+    <style>
+        .med-form-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .med-form-head h3 {
+            margin: 0;
+        }
+
+        .btn-anvisa {
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            padding: 10px 14px;
+            background: #f8fafc;
+            color: #1e3a8a;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .btn-anvisa:hover {
+            background: #eff6ff;
+            border-color: #93c5fd;
+        }
+
+        .anvisa-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.7);
+            z-index: 1200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .anvisa-modal {
+            width: 100%;
+            max-width: 560px;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+            border: 1px solid #e2e8f0;
+            overflow: hidden;
+        }
+
+        .anvisa-modal__head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 16px 18px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .anvisa-modal__title {
+            margin: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .anvisa-modal__x {
+            border: none;
+            background: transparent;
+            color: #64748b;
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.3rem;
+            line-height: 1;
+        }
+
+        .anvisa-modal__x:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .anvisa-modal__body {
+            padding: 16px 18px 18px;
+        }
+
+        .anvisa-search {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .anvisa-search input {
+            width: 100%;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 11px 12px;
+            font-size: 0.9rem;
+            font-family: inherit;
+        }
+
+        .anvisa-search input:focus {
+            outline: none;
+            border-color: #2c5d8c;
+            box-shadow: 0 0 0 3px rgba(44, 93, 140, 0.15);
+        }
+
+        .anvisa-search button {
+            border: none;
+            border-radius: 10px;
+            padding: 11px 14px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            background: linear-gradient(180deg, #3d7d6e 0%, #2c5d8c 100%);
+        }
+
+        .anvisa-status {
+            min-height: 20px;
+            color: #64748b;
+            font-size: 0.82rem;
+            margin-bottom: 10px;
+        }
+
+        .anvisa-results {
+            max-height: 340px;
+            overflow: auto;
+            display: grid;
+            gap: 10px;
+        }
+
+        .anvisa-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 10px 12px;
+            cursor: pointer;
+            background: #fff;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        .anvisa-item:hover {
+            border-color: #93c5fd;
+            background: #f8fbff;
+        }
+
+        .anvisa-item__name {
+            margin: 0;
+            color: #0f172a;
+            font-weight: 700;
+            font-size: 0.92rem;
+        }
+
+        .anvisa-item__meta {
+            margin-top: 4px;
+            color: #64748b;
+            font-size: 0.8rem;
+            line-height: 1.45;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
     <header class="app-topbar">
@@ -102,7 +271,10 @@
         <h1 class="page-title">Medicamentos</h1>
 
         <div class="card">
-            <h3>Cadastro de Medicamento</h3>
+            <div class="med-form-head">
+                <h3>Cadastro de Medicamento</h3>
+                <button type="button" class="btn-anvisa" id="btn-open-anvisa">🔍 Buscar na ANVISA</button>
+            </div>
             <form id="form-medicamento" class="form-grid" style="max-width: 640px;">
                 <div class="form-group">
                     <label for="nome-medicamento">Nome do medicamento *</label>
@@ -154,6 +326,26 @@
                 <button type="button" id="btn-retry-medicamentos" class="btn btn-secondary" style="margin-left: 12px;">Tentar novamente</button>
             </div>
         </div>
+
+        <div id="anvisa-modal-overlay" class="anvisa-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="anvisa-modal-title">
+            <div class="anvisa-modal">
+                <div class="anvisa-modal__head">
+                    <h3 id="anvisa-modal-title" class="anvisa-modal__title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M3 8.5 12 3l9 5.5V15c0 4.5-3.2 8.7-9 10-5.8-1.3-9-5.5-9-10V8.5Z" fill="#2c5d8c"/><path d="M12 7v9M7.5 11.5h9" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>
+                        Buscar na ANVISA
+                    </h3>
+                    <button type="button" class="anvisa-modal__x" id="btn-close-anvisa" aria-label="Fechar">×</button>
+                </div>
+                <div class="anvisa-modal__body">
+                    <div class="anvisa-search">
+                        <input type="text" id="anvisa-q" placeholder="Ex: dipirona, amoxicilina, ibuprofeno">
+                        <button type="button" id="btn-search-anvisa">Buscar</button>
+                    </div>
+                    <div class="anvisa-status" id="anvisa-status"></div>
+                    <div class="anvisa-results" id="anvisa-results"></div>
+                </div>
+            </div>
+        </div>
     </main>
     <script src="../js/shell.js"></script>
     <script src="../js/app.js?v=4"></script>
@@ -164,6 +356,13 @@
             var errorBlock = document.getElementById('medicamentos-error');
             var errorMsg = document.getElementById('medicamentos-error-msg');
             var btnRetry = document.getElementById('btn-retry-medicamentos');
+            var btnOpenAnvisa = document.getElementById('btn-open-anvisa');
+            var modalOverlay = document.getElementById('anvisa-modal-overlay');
+            var btnCloseAnvisa = document.getElementById('btn-close-anvisa');
+            var btnSearchAnvisa = document.getElementById('btn-search-anvisa');
+            var anvisaQ = document.getElementById('anvisa-q');
+            var anvisaStatus = document.getElementById('anvisa-status');
+            var anvisaResults = document.getElementById('anvisa-results');
 
             function setLoading(loading) {
                 errorBlock.style.display = 'none';
@@ -177,6 +376,15 @@
                 errorMsg.textContent = msg || 'Erro ao carregar medicamentos.';
                 errorBlock.style.display = 'block';
                 console.error('[Medicamentos]', msg);
+            }
+
+            function escapeHtml(str) {
+                return String(str == null ? '' : str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
             }
 
             function renderRows(medicamentos) {
@@ -209,6 +417,118 @@
             }
 
             if (btnRetry) btnRetry.addEventListener('click', loadMedicamentos);
+
+            function openAnvisaModal() {
+                modalOverlay.classList.remove('hidden');
+                anvisaQ.focus();
+            }
+
+            function closeAnvisaModal() {
+                modalOverlay.classList.add('hidden');
+                anvisaStatus.textContent = '';
+                anvisaResults.innerHTML = '';
+            }
+
+            function preencherFormularioComAnvisa(item) {
+                var nome = item.nome || '';
+                var principio = item.principio_ativo || '';
+                var classe = item.classe_terapeutica || '';
+                var laboratorio = item.laboratorio || '';
+                var registro = item.registro || '';
+                var tipo = item.tipo || '';
+                var situacao = item.situacao || '';
+
+                document.getElementById('nome-medicamento').value = nome;
+                document.getElementById('classe').value = classe || principio;
+                document.getElementById('dose').value = '';
+                document.getElementById('indicacao').value =
+                    [principio ? 'Princípio ativo: ' + principio : '', tipo ? 'Tipo: ' + tipo : '', situacao ? 'Situação: ' + situacao : '']
+                        .filter(Boolean)
+                        .join(' | ');
+                document.getElementById('contraindicacoes').value =
+                    [laboratorio ? 'Laboratório: ' + laboratorio : '', registro ? 'Registro ANVISA: ' + registro : '']
+                        .filter(Boolean)
+                        .join(' | ');
+
+                closeAnvisaModal();
+            }
+
+            function renderAnvisaResults(items) {
+                if (!items.length) {
+                    anvisaResults.innerHTML = '<div class="anvisa-item"><p class="anvisa-item__name">Nenhum resultado encontrado.</p></div>';
+                    return;
+                }
+                anvisaResults.innerHTML = items.map(function(item, idx) {
+                    return (
+                        '<button type="button" class="anvisa-item" data-anvisa-idx="' + idx + '">' +
+                            '<p class="anvisa-item__name">' + escapeHtml(item.nome || 'Sem nome') + '</p>' +
+                            '<div class="anvisa-item__meta">' +
+                                '<div><strong>Princípio ativo:</strong> ' + escapeHtml(item.principio_ativo || '-') + '</div>' +
+                                '<div><strong>Classe:</strong> ' + escapeHtml(item.classe_terapeutica || '-') + '</div>' +
+                                '<div><strong>Laboratório:</strong> ' + escapeHtml(item.laboratorio || '-') + '</div>' +
+                                '<div><strong>Registro:</strong> ' + escapeHtml(item.registro || '-') + ' &nbsp;|&nbsp; <strong>Tipo:</strong> ' + escapeHtml(item.tipo || '-') + '</div>' +
+                            '</div>' +
+                        '</button>'
+                    );
+                }).join('');
+
+                Array.prototype.forEach.call(anvisaResults.querySelectorAll('[data-anvisa-idx]'), function(el) {
+                    el.addEventListener('click', function() {
+                        var idx = parseInt(el.getAttribute('data-anvisa-idx'), 10);
+                        if (!isNaN(idx) && window.__anvisaData && window.__anvisaData[idx]) {
+                            preencherFormularioComAnvisa(window.__anvisaData[idx]);
+                        }
+                    });
+                });
+            }
+
+            function buscarNaAnvisa() {
+                var q = (anvisaQ.value || '').trim();
+                if (!q) {
+                    anvisaStatus.textContent = 'Digite um termo para buscar.';
+                    return;
+                }
+
+                anvisaStatus.textContent = 'Buscando...';
+                anvisaResults.innerHTML = '';
+                btnSearchAnvisa.disabled = true;
+
+                fetch('/backend/api/anvisa.php?q=' + encodeURIComponent(q), { credentials: 'same-origin' })
+                    .then(function(res) {
+                        return res.text().then(function(t) {
+                            var data = JSON.parse(t || '{}');
+                            if (!res.ok) throw new Error((data && (data.error || data.message)) || 'Falha na busca ANVISA');
+                            return data;
+                        });
+                    })
+                    .then(function(data) {
+                        var items = Array.isArray(data.resultados) ? data.resultados : [];
+                        window.__anvisaData = items;
+                        anvisaStatus.textContent = 'Resultados: ' + (data.total || items.length);
+                        renderAnvisaResults(items);
+                    })
+                    .catch(function(err) {
+                        anvisaStatus.textContent = 'Erro: ' + (err.message || 'não foi possível buscar na ANVISA');
+                    })
+                    .finally(function() {
+                        btnSearchAnvisa.disabled = false;
+                    });
+            }
+
+            btnOpenAnvisa.addEventListener('click', openAnvisaModal);
+            btnCloseAnvisa.addEventListener('click', closeAnvisaModal);
+            modalOverlay.addEventListener('click', function(ev) {
+                if (ev.target === modalOverlay) closeAnvisaModal();
+            });
+            btnSearchAnvisa.addEventListener('click', buscarNaAnvisa);
+            anvisaQ.addEventListener('keydown', function(ev) {
+                if (ev.key === 'Enter') {
+                    ev.preventDefault();
+                    buscarNaAnvisa();
+                } else if (ev.key === 'Escape') {
+                    closeAnvisaModal();
+                }
+            });
 
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
