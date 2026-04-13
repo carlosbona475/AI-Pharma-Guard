@@ -5,6 +5,131 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interações - AI Pharma Guard</title>
     <link rel="stylesheet" href="../css/app.css">
+    <style>
+        .rxnav-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+        .rxnav-head h3 { margin: 0; }
+        .rxnav-badge {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: .03em;
+        }
+        .rxnav-globe { color: #2563eb; }
+        .rxnav-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+        }
+        .rxnav-grid .form-group { margin-bottom: 0; }
+        .rxnav-full { grid-column: 1 / -1; }
+        .rxnav-out { margin-top: 14px; }
+        .rxnav-note {
+            margin-top: 14px;
+            font-size: 0.82rem;
+            color: #b45309;
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+        .rxnav-state {
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+        .rxnav-state--none {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            color: #475569;
+        }
+        .rxnav-state--ok {
+            background: #f0fdf4;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        .rxnav-item {
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            border-left: 4px solid #d97706;
+            background: #fffbeb;
+            border-top: 1px solid #fde68a;
+            border-right: 1px solid #fde68a;
+            border-bottom: 1px solid #fde68a;
+        }
+        .rxnav-item--grave {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+            border-color: #fecaca;
+        }
+        .rxnav-item--moderada {
+            border-left-color: #d97706;
+            background: #fffbeb;
+            border-color: #fde68a;
+        }
+        .rxnav-item--leve {
+            border-left-color: #16a34a;
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+        .rxnav-sev {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 3px 9px;
+            font-size: .7rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: .03em;
+            text-transform: uppercase;
+        }
+        .rxnav-sev--grave { background: #dc2626; color: #fff; }
+        .rxnav-sev--moderada { background: #d97706; color: #fff; }
+        .rxnav-sev--leve { background: #16a34a; color: #fff; }
+        .rxnav-med {
+            margin: 0 0 6px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .rxnav-desc { margin: 0 0 8px; color: #334155; }
+        .rxnav-foot {
+            font-size: .78rem;
+            color: #64748b;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+        .rxnav-foot a { color: #2563eb; }
+        .rxnav-toggle {
+            margin-top: 8px;
+            border: 1px solid #cbd5e1;
+            background: #fff;
+            border-radius: 8px;
+            padding: 7px 10px;
+            font-size: .8rem;
+            cursor: pointer;
+        }
+        .rxnav-orig {
+            margin-top: 8px;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 8px;
+            color: #475569;
+            font-size: .82rem;
+            white-space: pre-wrap;
+        }
+        .hidden { display: none !important; }
+        @media (max-width: 720px) { .rxnav-grid { grid-template-columns: 1fr; } }
+    </style>
 </head>
 <body>
     <script src="../js/auth-guard.js"></script>
@@ -180,6 +305,35 @@
                     </table>
                 </div>
             </div>
+
+            <div class="card">
+                <div class="rxnav-head">
+                    <svg class="rxnav-globe" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2"/><path d="M3 12h18M12 3c2.5 2.3 4 5.6 4 9s-1.5 6.7-4 9c-2.5-2.3-4-5.6-4-9s1.5-6.7 4-9Z" stroke="currentColor" stroke-width="2"/></svg>
+                    <h3>Consulta Internacional RxNav</h3>
+                    <span class="rxnav-badge">NIH · EUA</span>
+                </div>
+                <p style="margin:0 0 14px; color: var(--text-muted);">Consulta a base do National Institutes of Health (NIH) para interações reconhecidas internacionalmente.</p>
+
+                <div class="rxnav-grid">
+                    <div class="form-group">
+                        <label for="rxnav-med1">Medicamento A</label>
+                        <input type="text" id="rxnav-med1" placeholder="Ex: warfarin, aspirin, sertraline">
+                    </div>
+                    <div class="form-group">
+                        <label for="rxnav-med2">Medicamento B</label>
+                        <input type="text" id="rxnav-med2" placeholder="Ex: ibuprofen, fluoxetine, metformin">
+                    </div>
+                    <div class="form-group rxnav-full">
+                        <button type="button" id="btn-rxnav" class="btn btn-primary" style="width:100%;">Consultar RxNav</button>
+                    </div>
+                </div>
+
+                <div id="rxnav-out" class="rxnav-out">
+                    <div class="rxnav-state rxnav-state--none">Preencha os dois medicamentos e clique em "Consultar RxNav".</div>
+                </div>
+
+                <div class="rxnav-note">⚠ Dados em português gerados por tradução automática. Consulte sempre a bula oficial e o CFF para decisões clínicas.</div>
+            </div>
         </div>
     </main>
     <script src="../js/shell.js"></script>
@@ -253,6 +407,10 @@
             var selectMedA = document.getElementById('interacao-med-a');
             var selectMedB = document.getElementById('interacao-med-b');
             var tbodyInteracoes = document.querySelector('#tabela-interacoes tbody');
+            var rxMed1 = document.getElementById('rxnav-med1');
+            var rxMed2 = document.getElementById('rxnav-med2');
+            var btnRx = document.getElementById('btn-rxnav');
+            var rxOut = document.getElementById('rxnav-out');
 
             function popularSelectsMedicamentos(medicamentos) {
                 var opts = '<option value="">Selecione</option>' + medicamentos.map(function(m) {
@@ -317,6 +475,87 @@
                 selectMedA.innerHTML = selectMedB.innerHTML = '<option value="">Erro ao carregar</option>';
             });
             loadTabelaInteracoes();
+
+            function renderRxState(type, msg) {
+                var cls = type === 'ok' ? 'rxnav-state--ok' : 'rxnav-state--none';
+                rxOut.innerHTML = '<div class="rxnav-state ' + cls + '">' + escapeHtml(msg) + '</div>';
+            }
+
+            function sevClass(sev) {
+                if (sev === 'grave') return 'rxnav-item--grave';
+                if (sev === 'leve') return 'rxnav-item--leve';
+                return 'rxnav-item--moderada';
+            }
+
+            function sevBadgeClass(sev) {
+                if (sev === 'grave') return 'rxnav-sev--grave';
+                if (sev === 'leve') return 'rxnav-sev--leve';
+                return 'rxnav-sev--moderada';
+            }
+
+            function renderRxInteracoes(lista) {
+                rxOut.innerHTML = lista.map(function(i, idx) {
+                    var sev = (i.severidade || 'moderada').toLowerCase();
+                    var oid = 'rx-orig-' + idx;
+                    return '' +
+                        '<div class="rxnav-item ' + sevClass(sev) + '">' +
+                            '<span class="rxnav-sev ' + sevBadgeClass(sev) + '">' + escapeHtml(sev.toUpperCase()) + '</span>' +
+                            '<p class="rxnav-med">💊 ' + escapeHtml(i.medicamento_a || '') + ' ↔ ' + escapeHtml(i.medicamento_b || '') + '</p>' +
+                            '<p class="rxnav-desc">' + escapeHtml(i.descricao || 'Interação identificada pela base RxNav.') + '</p>' +
+                            '<div class="rxnav-foot">Fonte: RxNav/NIH · <a href="https://rxnav.nlm.nih.gov/" target="_blank" rel="noopener noreferrer">rxnav.nlm.nih.gov</a></div>' +
+                            '<button type="button" class="rxnav-toggle" data-target="' + oid + '">Ver detalhes</button>' +
+                            '<div id="' + oid + '" class="rxnav-orig hidden">' + escapeHtml(i.descricao_original || 'Sem detalhe original disponível.') + '</div>' +
+                        '</div>';
+                }).join('');
+                Array.from(rxOut.querySelectorAll('.rxnav-toggle')).forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var id = btn.getAttribute('data-target');
+                        var target = document.getElementById(id);
+                        if (!target) return;
+                        var show = target.classList.contains('hidden');
+                        target.classList.toggle('hidden', !show);
+                        btn.textContent = show ? 'Ocultar detalhes' : 'Ver detalhes';
+                    });
+                });
+            }
+
+            btnRx.addEventListener('click', function() {
+                var med1 = (rxMed1.value || '').trim();
+                var med2 = (rxMed2.value || '').trim();
+                if (!med1 || !med2) {
+                    renderRxState('none', 'Preencha os dois medicamentos para consultar.');
+                    return;
+                }
+                btnRx.disabled = true;
+                renderRxState('none', 'Consultando RxNav...');
+                fetch('/backend/api/rxnav.php?action=verificar&med1=' + encodeURIComponent(med1) + '&med2=' + encodeURIComponent(med2), {
+                    credentials: 'same-origin'
+                })
+                    .then(function(res) { return res.json(); })
+                    .then(function(data) {
+                        if (!data || data.success === false) {
+                            renderRxState('none', (data && data.message) || 'Falha na consulta RxNav.');
+                            return;
+                        }
+                        if (!data.med1 || !data.med2 || (!data.med1.rxcui || !data.med2.rxcui)) {
+                            renderRxState('none', 'Medicamento não encontrado na base RxNav. Verifique o nome em inglês ou use o nome genérico.');
+                            return;
+                        }
+                        var lista = Array.isArray(data.interacoes) ? data.interacoes : [];
+                        if (lista.length === 0) {
+                            renderRxState('ok', '✓ Nenhuma interação encontrada entre estes medicamentos na base RxNav/NIH');
+                            return;
+                        }
+                        renderRxInteracoes(lista);
+                    })
+                    .catch(function(err) {
+                        console.error('[RxNav] erro:', err);
+                        renderRxState('none', 'Erro ao consultar RxNav. Tente novamente.');
+                    })
+                    .finally(function() {
+                        btnRx.disabled = false;
+                    });
+            });
         })();
     </script>
 </body>
