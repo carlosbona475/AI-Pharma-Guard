@@ -16,32 +16,44 @@ $conn = getConnection();
 
 $action = $_GET['action'] ?? 'status';
 
-// ---- Importante: função cURL global para evitar redeclaração ----
-function fazerCurlAnvisa($url) {
-    if (!function_exists('curl_init')) {
-        return false;
-    }
-
+function fazerCurl($url) {
+    if (!function_exists('curl_init')) return false;
     $ch = curl_init();
     curl_setopt_array($ch, [
-        CURLOPT_URL => $url,
+        CURLOPT_URL            => $url,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 15,
+        CURLOPT_TIMEOUT        => 20,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_USERAGENT => 'Mozilla/5.0',
-        CURLOPT_HTTPHEADER => [
-            'Accept: application/json',
+        CURLOPT_ENCODING       => 'gzip, deflate, br',
+        CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        CURLOPT_HTTPHEADER     => [
+            'Accept: application/json, text/plain, */*',
+            'Accept-Language: pt-BR,pt;q=0.9,en;q=0.8',
+            'Accept-Encoding: gzip, deflate, br',
             'Authorization: Guest',
-            'Referer: https://consultas.anvisa.gov.br/',
+            'Connection: keep-alive',
+            'Host: consultas.anvisa.gov.br',
+            'Origin: https://consultas.anvisa.gov.br',
+            'Referer: https://consultas.anvisa.gov.br/medicamentos',
+            'Sec-Fetch-Dest: empty',
+            'Sec-Fetch-Mode: cors',
+            'Sec-Fetch-Site: same-origin',
+            'sec-ch-ua: "Not_A Brand";v="8", "Chromium";v="120"',
+            'sec-ch-ua-mobile: ?0',
+            'sec-ch-ua-platform: "Windows"'
         ],
+        CURLOPT_COOKIEJAR      => sys_get_temp_dir() . '/anvisa_cookie.txt',
+        CURLOPT_COOKIEFILE     => sys_get_temp_dir() . '/anvisa_cookie.txt',
     ]);
-
-    $resp = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error    = curl_error($ch);
     curl_close($ch);
-    return $code === 200 ? $resp : false;
+    
+    if ($error || $httpCode !== 200) return false;
+    return $response;
 }
 
 // ---- Criar tabela medicamentos_anvisa ----
@@ -88,11 +100,16 @@ if ($action === 'importar') {
     $total = 0;
     $novos = 0;
 
+    // Visita prévia para pegar cookies da ANVISA
+    fazerCurl('https://consultas.anvisa.gov.br/medicamentos');
+    sleep(1);
+
+    // Depois faz a requisição real
     $url = 'https://consultas.anvisa.gov.br/api/consulta/medicamentos'
         . '?count=50&page=' . $pagina
         . '&filter%5BsituacaoRegistro%5D=Ativo';
 
-    $response = fazerCurlAnvisa($url);
+    $response = fazerCurl($url);
 
     if (!$response) {
         echo json_encode([
