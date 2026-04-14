@@ -15,7 +15,7 @@ require_once __DIR__ . '/../config/database.php';
 $conn = getConnection();
 
 $action = $_GET['action'] ?? 'status';
-define('ANVISA_CSV_URL', 'https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_MEDICAMENTOS.csv');
+define('ANVISA_CSV_URL', 'https://dados.anvisa.gov.br/dados/CONSULTAS/PRODUTOS/TA_CONSULTA_MEDICAMENTOS.CSV');
 define('ANVISA_CSV_LOCAL', sys_get_temp_dir() . '/anvisa_meds.csv');
 
 function baixarCsvAnvisa($url, $destino) {
@@ -48,6 +48,30 @@ function convLinhaUtf8(array $linha) {
         $out[] = mb_convert_encoding((string) $col, 'UTF-8', 'ISO-8859-1');
     }
     return $out;
+}
+
+function normalizarCabecalho($texto) {
+    $t = mb_strtoupper(trim((string) $texto), 'UTF-8');
+    $t = strtr($t, [
+        'Á' => 'A', 'À' => 'A', 'Â' => 'A', 'Ã' => 'A', 'Ä' => 'A',
+        'É' => 'E', 'È' => 'E', 'Ê' => 'E', 'Ë' => 'E',
+        'Í' => 'I', 'Ì' => 'I', 'Î' => 'I', 'Ï' => 'I',
+        'Ó' => 'O', 'Ò' => 'O', 'Ô' => 'O', 'Õ' => 'O', 'Ö' => 'O',
+        'Ú' => 'U', 'Ù' => 'U', 'Û' => 'U', 'Ü' => 'U',
+        'Ç' => 'C',
+    ]);
+    return $t;
+}
+
+function acharIndiceColuna(array $header, array $termos) {
+    foreach ($header as $i => $h) {
+        foreach ($termos as $termo) {
+            if (mb_strpos($h, $termo, 0, 'UTF-8') !== false) {
+                return $i;
+            }
+        }
+    }
+    return null;
 }
 
 // ---- Criar tabela medicamentos_anvisa ----
@@ -113,9 +137,16 @@ if ($action === 'importar') {
         exit;
     }
     $headerUtf8 = convLinhaUtf8($header);
-    $indices = array_flip(array_map(function ($h) {
-        return strtoupper(trim($h));
-    }, $headerUtf8));
+    $headerNorm = array_map('normalizarCabecalho', $headerUtf8);
+
+    $idxNome = acharIndiceColuna($headerNorm, ['PRODUTO', 'NOME']);
+    $idxPrincipioAtivo = acharIndiceColuna($headerNorm, ['PRINCIPIO', 'ATIVO']);
+    $idxClasse = acharIndiceColuna($headerNorm, ['CLASSE']);
+    $idxLaboratorio = acharIndiceColuna($headerNorm, ['EMPRESA', 'LABORATORIO']);
+    $idxRegistro = acharIndiceColuna($headerNorm, ['REGISTRO', 'NUM_REG']);
+    $idxSituacao = acharIndiceColuna($headerNorm, ['SITUACAO']);
+    $idxTipo = acharIndiceColuna($headerNorm, ['CATEGORIA']);
+    $idxDataVenc = acharIndiceColuna($headerNorm, ['DATA_VENCIMENTO', 'VENCIMENTO']);
 
     // 4) paginação por bloco de 200
     $pagina = isset($_GET['pagina']) ? max(1, (int) $_GET['pagina']) : 1;
@@ -151,17 +182,17 @@ if ($action === 'importar') {
             $processadas++;
 
             $cols = convLinhaUtf8($row);
-            $nome = trim((string) ($cols[$indices['PRODUTO']] ?? ''));
+            $nome = trim((string) (($idxNome !== null) ? ($cols[$idxNome] ?? '') : ''));
             if ($nome === '') {
                 continue;
             }
-            $principioAtivo = (string) ($cols[$indices['PRINCIPIO_ATIVO']] ?? '');
-            $classeTerapeutica = (string) ($cols[$indices['CLASSE_TERAPEUTICA']] ?? '');
-            $laboratorio = (string) ($cols[$indices['EMPRESA_DETENTORA_REGISTRO']] ?? '');
-            $registro = (string) ($cols[$indices['NUMERO_REGISTRO_ANVISA']] ?? '');
-            $situacao = mb_strtolower((string) ($cols[$indices['SITUACAO_REGISTRO']] ?? 'ativo'), 'UTF-8');
-            $tipo = mb_strtolower((string) ($cols[$indices['CATEGORIA_REGULATORIA']] ?? ''), 'UTF-8');
-            $dataVenc = trim((string) ($cols[$indices['DATA_VENCIMENTO_REGISTRO']] ?? ''));
+            $principioAtivo = (string) (($idxPrincipioAtivo !== null) ? ($cols[$idxPrincipioAtivo] ?? '') : '');
+            $classeTerapeutica = (string) (($idxClasse !== null) ? ($cols[$idxClasse] ?? '') : '');
+            $laboratorio = (string) (($idxLaboratorio !== null) ? ($cols[$idxLaboratorio] ?? '') : '');
+            $registro = (string) (($idxRegistro !== null) ? ($cols[$idxRegistro] ?? '') : '');
+            $situacao = mb_strtolower((string) (($idxSituacao !== null) ? ($cols[$idxSituacao] ?? 'ativo') : 'ativo'), 'UTF-8');
+            $tipo = mb_strtolower((string) (($idxTipo !== null) ? ($cols[$idxTipo] ?? '') : ''), 'UTF-8');
+            $dataVenc = trim((string) (($idxDataVenc !== null) ? ($cols[$idxDataVenc] ?? '') : ''));
             $dataVencDb = null;
             if ($dataVenc !== '') {
                 $dt = DateTime::createFromFormat('d/m/Y', $dataVenc);
@@ -212,7 +243,7 @@ if ($action === 'importar') {
 
 if ($action === 'testar_urls') {
     $urls = [
-        'https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_MEDICAMENTOS.csv',
+        'https://dados.anvisa.gov.br/dados/CONSULTAS/PRODUTOS/TA_CONSULTA_MEDICAMENTOS.CSV',
     ];
     $resultados = [];
     foreach ($urls as $url) {
