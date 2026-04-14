@@ -15,169 +15,39 @@ require_once __DIR__ . '/../config/database.php';
 $conn = getConnection();
 
 $action = $_GET['action'] ?? 'status';
-define('ANVISA_ZIP_LOCAL', sys_get_temp_dir() . '/DADOS_ABERTOS_MEDICAMENTOS.zip');
+define('ANVISA_CSV_URL', 'https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_MEDICAMENTOS.csv');
+define('ANVISA_CSV_LOCAL', sys_get_temp_dir() . '/anvisa_meds.csv');
 
-function fazerCurl($url) {
-    if (!function_exists('curl_init')) return false;
+function baixarCsvAnvisa($url, $destino) {
+    if (!function_exists('curl_init')) {
+        return false;
+    }
     $ch = curl_init();
     curl_setopt_array($ch, [
         CURLOPT_URL            => $url,
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT        => 20,
+        CURLOPT_TIMEOUT        => 120,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_SSL_VERIFYPEER => false,
         CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_ENCODING       => 'gzip, deflate, br',
-        CURLOPT_USERAGENT      => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        CURLOPT_HTTPHEADER     => [
-            'Accept: application/json, text/plain, */*',
-            'Accept-Language: pt-BR,pt;q=0.9,en;q=0.8',
-            'Accept-Encoding: gzip, deflate, br',
-            'Authorization: Guest',
-            'Connection: keep-alive',
-            'Host: consultas.anvisa.gov.br',
-            'Origin: https://consultas.anvisa.gov.br',
-            'Referer: https://consultas.anvisa.gov.br/medicamentos',
-            'Sec-Fetch-Dest: empty',
-            'Sec-Fetch-Mode: cors',
-            'Sec-Fetch-Site: same-origin',
-            'sec-ch-ua: "Not_A Brand";v="8", "Chromium";v="120"',
-            'sec-ch-ua-mobile: ?0',
-            'sec-ch-ua-platform: "Windows"'
-        ],
-        CURLOPT_COOKIEJAR      => sys_get_temp_dir() . '/anvisa_cookie.txt',
-        CURLOPT_COOKIEFILE     => sys_get_temp_dir() . '/anvisa_cookie.txt',
+        CURLOPT_USERAGENT      => 'Mozilla/5.0',
     ]);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error    = curl_error($ch);
-    curl_close($ch);
-    
-    if ($error || $httpCode !== 200) return false;
-    return $response;
-}
-
-function downloadArquivoAnvisa($url, $destino) {
-    if (!function_exists('curl_init')) {
-        return ['ok' => false, 'erro' => 'cURL não disponível no servidor.'];
-    }
-
-    $fp = @fopen($destino, 'wb');
-    if (!$fp) {
-        return ['ok' => false, 'erro' => 'Não foi possível criar arquivo temporário do ZIP.'];
-    }
-
-    $ch = curl_init();
-    curl_setopt_array($ch, [
-        CURLOPT_URL => $url,
-        CURLOPT_FILE => $fp,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_TIMEOUT => 180,
-        CURLOPT_CONNECTTIMEOUT => 20,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_SSL_VERIFYHOST => false,
-        CURLOPT_USERAGENT => 'Mozilla/5.0 (AI Pharma Guard Importador ANVISA)',
-        CURLOPT_HTTPHEADER => [
-            'Accept: application/zip,application/octet-stream,*/*',
-        ],
-    ]);
-
-    $ok = curl_exec($ch);
+    $data = curl_exec($ch);
     $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $erro = curl_error($ch);
     curl_close($ch);
-    fclose($fp);
 
-    if (!$ok || $httpCode !== 200) {
-        @unlink($destino);
-        return ['ok' => false, 'erro' => $erro !== '' ? $erro : ('Falha no download (HTTP ' . $httpCode . ').')];
+    if ($httpCode !== 200 || !$data || strlen($data) < 1000) {
+        return false;
     }
-
-    if (!file_exists($destino) || filesize($destino) <= 0) {
-        @unlink($destino);
-        return ['ok' => false, 'erro' => 'Download concluído, mas o arquivo ZIP está vazio.'];
-    }
-
-    return ['ok' => true];
+    return file_put_contents($destino, $data) !== false;
 }
 
-function baixarArquivoAnvisa() {
-    $destino = sys_get_temp_dir() . '/DADOS_ABERTOS_MEDICAMENTOS.zip';
-    
-    // Tentar múltiplas URLs oficiais
-    $urls = [
-        'https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_MEDICAMENTOS.zip',
-        'https://www.gov.br/anvisa/pt-br/acessoainformacao/dadosabertos/dados/DADOS_ABERTOS_MEDICAMENTOS.zip',
-        'https://dados.gov.br/dados/conjuntos-dados/medicamentos-registrados-no-brasil/DADOS_ABERTOS_MEDICAMENTOS.zip',
-    ];
-    
-    foreach ($urls as $url) {
-        $ch = curl_init();
-        curl_setopt_array($ch, [
-            CURLOPT_URL            => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT        => 120,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYPEER => false,
-            CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_USERAGENT      => 'Mozilla/5.0',
-        ]);
-        $data     = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-        
-        if ($httpCode === 200 && $data && strlen($data) > 10000) {
-            file_put_contents($destino, $data);
-            return $destino;
-        }
+function convLinhaUtf8(array $linha) {
+    $out = [];
+    foreach ($linha as $col) {
+        $out[] = mb_convert_encoding((string) $col, 'UTF-8', 'ISO-8859-1');
     }
-    return false;
-}
-
-function extrairCsvAnvisa($zipPath) {
-    if (!class_exists('ZipArchive')) {
-        return ['ok' => false, 'erro' => 'Extensão ZipArchive não disponível no servidor.'];
-    }
-
-    $zip = new ZipArchive();
-    if ($zip->open($zipPath) !== true) {
-        return ['ok' => false, 'erro' => 'Não foi possível abrir o ZIP da ANVISA.'];
-    }
-
-    $csvPath = null;
-    for ($i = 0; $i < $zip->numFiles; $i++) {
-        $stat = $zip->statIndex($i);
-        if (!$stat || empty($stat['name'])) {
-            continue;
-        }
-        $nomeInterno = $stat['name'];
-        if (strtolower(pathinfo($nomeInterno, PATHINFO_EXTENSION)) === 'csv') {
-            $csvPath = sys_get_temp_dir() . '/anvisa_' . md5($nomeInterno) . '.csv';
-            $conteudo = $zip->getFromIndex($i);
-            if ($conteudo === false) {
-                $zip->close();
-                return ['ok' => false, 'erro' => 'Falha ao extrair CSV do ZIP.'];
-            }
-            file_put_contents($csvPath, $conteudo);
-            break;
-        }
-    }
-    $zip->close();
-
-    if (!$csvPath || !file_exists($csvPath)) {
-        return ['ok' => false, 'erro' => 'Nenhum arquivo CSV encontrado no ZIP.'];
-    }
-
-    return ['ok' => true, 'csv' => $csvPath];
-}
-
-function toUtf8($valor) {
-    $valor = (string) $valor;
-    if ($valor === '') {
-        return '';
-    }
-    $conv = @iconv('ISO-8859-1', 'UTF-8//IGNORE', $valor);
-    return $conv !== false ? $conv : $valor;
+    return $out;
 }
 
 // ---- Criar tabela medicamentos_anvisa ----
@@ -216,48 +86,46 @@ if ($action === 'criar_tabela') {
 
 // ---- Importar página de medicamentos ----
 if ($action === 'importar') {
-    $zipPath = baixarArquivoAnvisa();
-    if (!$zipPath) {
+    // 1) baixar CSV direto
+    if (!baixarCsvAnvisa(ANVISA_CSV_URL, ANVISA_CSV_LOCAL)) {
         echo json_encode([
             'success' => false,
-            'message' => 'Não foi possível baixar o ZIP da ANVISA nas URLs conhecidas.',
+            'message' => 'Não foi possível baixar o CSV da ANVISA.',
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
-    $ext = extrairCsvAnvisa($zipPath);
-    if (!$ext['ok']) {
-        echo json_encode([
-            'success' => false,
-            'message' => $ext['erro'],
-        ], JSON_UNESCAPED_UNICODE);
-        exit;
-    }
-    $csvPath = $ext['csv'];
-
-    $fp = @fopen($csvPath, 'r');
+    // 2) abrir CSV local
+    $fp = @fopen(ANVISA_CSV_LOCAL, 'r');
     if (!$fp) {
         echo json_encode([
             'success' => false,
-            'message' => 'Não foi possível abrir o CSV extraído.',
+            'message' => 'Não foi possível abrir o CSV local.',
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
+    // 3) primeira linha é cabeçalho (ignorar)
     $header = fgetcsv($fp, 0, ';');
-    if (!is_array($header) || count($header) === 0) {
+    if ($header === false) {
         fclose($fp);
-        echo json_encode([
-            'success' => false,
-            'message' => 'Cabeçalho CSV inválido.',
-        ], JSON_UNESCAPED_UNICODE);
+        echo json_encode(['success' => false, 'message' => 'CSV vazio ou inválido.'], JSON_UNESCAPED_UNICODE);
         exit;
     }
+    $headerUtf8 = convLinhaUtf8($header);
+    $indices = array_flip(array_map(function ($h) {
+        return strtoupper(trim($h));
+    }, $headerUtf8));
 
-    $header = array_map(function ($h) {
-        return strtoupper(trim(toUtf8($h)));
-    }, $header);
-    $idx = array_flip($header);
+    // 4) paginação por bloco de 200
+    $pagina = isset($_GET['pagina']) ? max(1, (int) $_GET['pagina']) : 1;
+    $porPagina = 200;
+    $offset = ($pagina - 1) * $porPagina;
+
+    $linhaAtual = 0;
+    $processadas = 0;
+    $importados = 0;
+    $hasMore = false;
 
     try {
         $stmt = $conn->prepare("
@@ -266,30 +134,34 @@ if ($action === 'importar') {
                  laboratorio, registro, situacao, tipo, data_vencimento)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
-
-        $totalLido = 0;
-        $totalInserido = 0;
-        $batchCount = 0;
-
         $conn->beginTransaction();
         while (($row = fgetcsv($fp, 0, ';')) !== false) {
-            if (!is_array($row) || count($row) === 0) {
+            if (!is_array($row) || empty($row)) {
                 continue;
             }
-
-            $totalLido++;
-            $nome = isset($idx['PRODUTO']) ? toUtf8($row[$idx['PRODUTO']] ?? '') : '';
-            if (trim($nome) === '') {
+            if ($linhaAtual < $offset) {
+                $linhaAtual++;
                 continue;
             }
+            if ($processadas >= $porPagina) {
+                $hasMore = true;
+                break;
+            }
+            $linhaAtual++;
+            $processadas++;
 
-            $principioAtivo = isset($idx['PRINCIPIO_ATIVO']) ? toUtf8($row[$idx['PRINCIPIO_ATIVO']] ?? '') : '';
-            $classeTerapeutica = isset($idx['CLASSE_TERAPEUTICA']) ? toUtf8($row[$idx['CLASSE_TERAPEUTICA']] ?? '') : '';
-            $laboratorio = isset($idx['EMPRESA_DETENTORA_REGISTRO']) ? toUtf8($row[$idx['EMPRESA_DETENTORA_REGISTRO']] ?? '') : '';
-            $registro = isset($idx['NUMERO_REGISTRO_ANVISA']) ? toUtf8($row[$idx['NUMERO_REGISTRO_ANVISA']] ?? '') : '';
-            $situacao = isset($idx['SITUACAO_REGISTRO']) ? mb_strtolower(toUtf8($row[$idx['SITUACAO_REGISTRO']] ?? ''), 'UTF-8') : 'ativo';
-            $tipo = isset($idx['CATEGORIA_REGULATORIA']) ? mb_strtolower(toUtf8($row[$idx['CATEGORIA_REGULATORIA']] ?? ''), 'UTF-8') : '';
-            $dataVenc = isset($idx['DATA_VENCIMENTO_REGISTRO']) ? trim(toUtf8($row[$idx['DATA_VENCIMENTO_REGISTRO']] ?? '')) : '';
+            $cols = convLinhaUtf8($row);
+            $nome = trim((string) ($cols[$indices['PRODUTO']] ?? ''));
+            if ($nome === '') {
+                continue;
+            }
+            $principioAtivo = (string) ($cols[$indices['PRINCIPIO_ATIVO']] ?? '');
+            $classeTerapeutica = (string) ($cols[$indices['CLASSE_TERAPEUTICA']] ?? '');
+            $laboratorio = (string) ($cols[$indices['EMPRESA_DETENTORA_REGISTRO']] ?? '');
+            $registro = (string) ($cols[$indices['NUMERO_REGISTRO_ANVISA']] ?? '');
+            $situacao = mb_strtolower((string) ($cols[$indices['SITUACAO_REGISTRO']] ?? 'ativo'), 'UTF-8');
+            $tipo = mb_strtolower((string) ($cols[$indices['CATEGORIA_REGULATORIA']] ?? ''), 'UTF-8');
+            $dataVenc = trim((string) ($cols[$indices['DATA_VENCIMENTO_REGISTRO']] ?? ''));
             $dataVencDb = null;
             if ($dataVenc !== '') {
                 $dt = DateTime::createFromFormat('d/m/Y', $dataVenc);
@@ -313,25 +185,17 @@ if ($action === 'importar') {
                 $tipo,
                 $dataVencDb,
             ]);
-            $totalInserido += (int) $stmt->rowCount();
-            $batchCount++;
-
-            if ($batchCount >= 100) {
-                $conn->commit();
-                $conn->beginTransaction();
-                $batchCount = 0;
-            }
+            $importados += (int) $stmt->rowCount();
         }
         fclose($fp);
         $conn->commit();
-        @unlink($csvPath);
 
         echo json_encode([
             'success' => true,
-            'message' => 'Importação da base de Dados Abertos concluída.',
-            'total_lido' => $totalLido,
-            'total_inserido' => $totalInserido,
-            'arquivo_zip' => ANVISA_ZIP_LOCAL,
+            'pagina_atual' => $pagina,
+            'importados' => $importados,
+            'proxima_pagina' => $pagina + 1,
+            'concluido' => !$hasMore,
         ], JSON_UNESCAPED_UNICODE);
     } catch (PDOException $e) {
         if ($conn->inTransaction()) {
@@ -348,9 +212,7 @@ if ($action === 'importar') {
 
 if ($action === 'testar_urls') {
     $urls = [
-        'https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_MEDICAMENTOS.zip',
-        'https://www.gov.br/anvisa/pt-br/acessoainformacao/dadosabertos/dados/DADOS_ABERTOS_MEDICAMENTOS.zip',
-        'https://dados.gov.br/dados/conjuntos-dados/medicamentos-registrados-no-brasil/DADOS_ABERTOS_MEDICAMENTOS.zip',
+        'https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_MEDICAMENTOS.csv',
     ];
     $resultados = [];
     foreach ($urls as $url) {
@@ -381,12 +243,12 @@ if ($action === 'testar_urls') {
 
 // ---- Status do download do ZIP ----
 if ($action === 'download_status') {
-    $existe = file_exists(ANVISA_ZIP_LOCAL);
-    $bytes = $existe ? (int) filesize(ANVISA_ZIP_LOCAL) : 0;
+    $existe = file_exists(ANVISA_CSV_LOCAL);
+    $bytes = $existe ? (int) filesize(ANVISA_CSV_LOCAL) : 0;
     $mb = $bytes > 0 ? round($bytes / 1048576, 2) : 0;
     echo json_encode([
         'success' => true,
-        'arquivo' => ANVISA_ZIP_LOCAL,
+        'arquivo' => ANVISA_CSV_LOCAL,
         'baixado' => $existe,
         'tamanho_mb' => $mb,
     ], JSON_UNESCAPED_UNICODE);
