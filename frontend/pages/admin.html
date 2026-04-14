@@ -743,6 +743,143 @@
             border: 1px solid rgba(248, 113, 113, 0.35);
         }
 
+        .anv-grid {
+            display: grid;
+            gap: 16px;
+            max-width: 980px;
+        }
+
+        .anv-card {
+            background: #0f172a;
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        .anv-card h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+            color: #f8fafc;
+        }
+
+        .anv-muted {
+            margin: 0;
+            color: #94a3b8;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .anv-total {
+            margin: 12px 0 8px;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #f8fafc;
+            line-height: 1;
+        }
+
+        .anv-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .anv-badge--ok {
+            color: #4ade80;
+            background: rgba(22, 163, 74, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+
+        .anv-badge--err {
+            color: #f87171;
+            background: rgba(220, 38, 38, 0.2);
+            border: 1px solid rgba(248, 113, 113, 0.35);
+        }
+
+        .anv-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .anv-btn {
+            min-height: 40px;
+            padding: 8px 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+        }
+
+        .anv-btn--blue {
+            color: #fff;
+            background: #2563eb;
+        }
+
+        .anv-btn--blue:hover {
+            background: #1d4ed8;
+        }
+
+        .anv-btn--gray {
+            color: #e2e8f0;
+            background: #334155;
+        }
+
+        .anv-btn--gray:hover {
+            background: #475569;
+        }
+
+        .anv-input {
+            margin-top: 8px;
+            width: 180px;
+            max-width: 100%;
+            height: 40px;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0b1220;
+            color: #e2e8f0;
+            padding: 0 12px;
+            font-family: inherit;
+        }
+
+        .anv-warn {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #eab308;
+            background: rgba(234, 179, 8, 0.14);
+            color: #fde68a;
+            font-size: 0.825rem;
+            line-height: 1.5;
+        }
+
+        .anv-log {
+            margin-top: 12px;
+            color: #cbd5e1;
+            font-size: 0.875rem;
+            line-height: 1.5;
+            white-space: pre-line;
+        }
+
+        .anv-results {
+            margin-top: 12px;
+            border-top: 1px solid #1e293b;
+            padding-top: 10px;
+            display: grid;
+            gap: 8px;
+        }
+
+        .anv-result-item {
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 10px;
+            background: #0b1220;
+        }
+
         /* Toast */
         #adm-toast-root {
             position: fixed;
@@ -904,6 +1041,14 @@
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.372.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                     Configurações
                 </button>
+                <button type="button" class="adm-nav-item" data-tab="anvisa">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <ellipse cx="12" cy="5" rx="8" ry="3"/>
+                        <path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/>
+                        <path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/>
+                    </svg>
+                    Base ANVISA
+                </button>
             </aside>
 
             <main class="adm-main">
@@ -937,6 +1082,14 @@
                     </div>
                     <div id="config-body"></div>
                 </section>
+
+                <section id="panel-anvisa" class="adm-panel-section hidden" data-panel="anvisa">
+                    <div class="adm-section-head">
+                        <h2 class="adm-section-title">Base ANVISA</h2>
+                        <button type="button" class="adm-btn-refresh" id="btn-refresh-anvisa">↻ Atualizar</button>
+                    </div>
+                    <div id="anvisa-body"></div>
+                </section>
             </main>
         </div>
     </div>
@@ -951,6 +1104,18 @@
 
             function adminUrl(action) {
                 return '/backend/admin.php?admin_key=' + encodeURIComponent(ADMIN_KEY) + '&action=' + encodeURIComponent(action);
+            }
+
+            function anvisaUrl(action, extraQuery) {
+                var url =
+                    '/backend/api/importar_anvisa.php?admin_key=' +
+                    encodeURIComponent(ADMIN_KEY) +
+                    '&action=' +
+                    encodeURIComponent(action);
+                if (extraQuery) {
+                    url += '&' + extraQuery;
+                }
+                return url;
             }
 
             var viewLogin = document.getElementById('view-login');
@@ -1084,6 +1249,7 @@
                 if (name === 'aprovadas') loadAprovadas();
                 if (name === 'stats') loadStats();
                 if (name === 'config') loadConfig();
+                if (name === 'anvisa') loadAnvisa();
             }
 
             navItems.forEach(function (btn) {
@@ -1100,6 +1266,9 @@
             });
             document.getElementById('btn-refresh-stats').addEventListener('click', function () {
                 loadStats();
+            });
+            document.getElementById('btn-refresh-anvisa').addEventListener('click', function () {
+                loadAnvisa();
             });
 
             function formatDt(s) {
@@ -1340,6 +1509,179 @@
                             '<div class="adm-config-block"><h3>Banco de dados</h3>' +
                             '<span class="adm-db-badge adm-db-badge--err">Erro</span></div></div>';
                     });
+            }
+
+            var anvisaBody = document.getElementById('anvisa-body');
+
+            function loadAnvisa() {
+                anvisaBody.innerHTML = loadingHtml();
+                fetch(anvisaUrl('status'))
+                    .then(parseJsonFetchResponse)
+                    .then(function (status) {
+                        var total = status && status.total_importados ? Number(status.total_importados) : 0;
+                        var tabelaExiste = !!(status && status.tabela_existe);
+                        var badgeClass = total > 0 ? 'anv-badge anv-badge--ok' : 'anv-badge anv-badge--err';
+                        var badgeLabel = total > 0 ? 'Base atualizada' : 'Base vazia';
+
+                        anvisaBody.innerHTML =
+                            '<div class="anv-grid">' +
+                            '<div class="anv-card">' +
+                            '<h3>Status da base local ANVISA</h3>' +
+                            '<p class="anv-muted">Total de medicamentos importados:</p>' +
+                            '<div class="anv-total" id="anv-total">' +
+                            total +
+                            '</div>' +
+                            '<span class="' +
+                            badgeClass +
+                            '" id="anv-badge">' +
+                            badgeLabel +
+                            '</span>' +
+                            '<div class="anv-actions">' +
+                            '<button type="button" class="anv-btn anv-btn--gray" id="anv-btn-criar"' +
+                            (tabelaExiste ? ' disabled' : '') +
+                            '>Criar tabela</button>' +
+                            '</div>' +
+                            '</div>' +
+
+                            '<div class="anv-card">' +
+                            '<h3>Importar base ANVISA</h3>' +
+                            '<p class="anv-muted">Importa medicamentos registrados e ativos da base oficial da ANVISA página por página.</p>' +
+                            '<div class="anv-warn">A importação completa tem milhares de páginas. Importe aos poucos clicando em "Importar próxima página".</div>' +
+                            '<label for="anv-pagina" class="anv-muted" style="display:block;margin-top:12px">Página inicial</label>' +
+                            '<input id="anv-pagina" class="anv-input" type="number" min="1" step="1" value="1">' +
+                            '<div class="anv-actions">' +
+                            '<button type="button" class="anv-btn anv-btn--blue" id="anv-btn-importar">Importar próxima página</button>' +
+                            '</div>' +
+                            '<div class="anv-log" id="anv-log"></div>' +
+                            '</div>' +
+
+                            '<div class="anv-card">' +
+                            '<h3>Teste de busca</h3>' +
+                            '<p class="anv-muted">Buscar medicamento importado</p>' +
+                            '<input id="anv-q" class="anv-input" type="text" placeholder="Ex: dipirona">' +
+                            '<div class="anv-actions">' +
+                            '<button type="button" class="anv-btn anv-btn--blue" id="anv-btn-buscar">Buscar</button>' +
+                            '</div>' +
+                            '<div id="anv-results" class="anv-results"></div>' +
+                            '</div>' +
+                            '</div>';
+
+                        bindAnvisaActions();
+                    })
+                    .catch(function (err) {
+                        anvisaBody.innerHTML =
+                            '<div class="adm-empty">Erro ao carregar Base ANVISA: ' + escapeHtml(err.message || 'Falha') + '</div>';
+                    });
+            }
+
+            function bindAnvisaActions() {
+                var btnCriar = document.getElementById('anv-btn-criar');
+                var btnImportar = document.getElementById('anv-btn-importar');
+                var btnBuscar = document.getElementById('anv-btn-buscar');
+
+                if (btnCriar) {
+                    btnCriar.addEventListener('click', function () {
+                        fetch(anvisaUrl('criar_tabela'))
+                            .then(parseJsonFetchResponse)
+                            .then(function (d) {
+                                showToast(d.message || 'Tabela criada com sucesso.', 'success');
+                                loadAnvisa();
+                            })
+                            .catch(function (err) {
+                                showToast(err.message || 'Erro ao criar tabela.', 'error');
+                            });
+                    });
+                }
+
+                if (btnImportar) {
+                    btnImportar.addEventListener('click', function () {
+                        var inputPagina = document.getElementById('anv-pagina');
+                        var log = document.getElementById('anv-log');
+                        var pagina = parseInt(inputPagina.value, 10);
+                        if (!pagina || pagina < 1) pagina = 1;
+
+                        btnImportar.disabled = true;
+                        fetch(anvisaUrl('importar', 'pagina=' + encodeURIComponent(String(pagina))))
+                            .then(parseJsonFetchResponse)
+                            .then(function (d) {
+                                var msg = '';
+                                msg += '✓ Página ' + d.pagina_atual + ' importada — ' + d.importados + ' medicamentos adicionados.\n';
+                                msg += 'Próxima página: ' + (d.proxima_pagina != null ? d.proxima_pagina : '—') + ' | Total ANVISA: ' + d.total_anvisa + ' medicamentos';
+                                if (d.concluido) {
+                                    msg += '\n✓ Importação completa!';
+                                }
+                                log.textContent = msg;
+                                if (d.proxima_pagina != null) {
+                                    inputPagina.value = d.proxima_pagina;
+                                }
+                                loadAnvisaStatusOnly();
+                            })
+                            .catch(function (err) {
+                                log.textContent = 'Erro na importação: ' + (err.message || 'Falha inesperada.');
+                            })
+                            .finally(function () {
+                                btnImportar.disabled = false;
+                            });
+                    });
+                }
+
+                if (btnBuscar) {
+                    btnBuscar.addEventListener('click', function () {
+                        var qInput = document.getElementById('anv-q');
+                        var results = document.getElementById('anv-results');
+                        var termo = (qInput.value || '').trim();
+                        if (!termo) {
+                            results.innerHTML = '<div class="anv-muted">Informe um termo para busca.</div>';
+                            return;
+                        }
+
+                        results.innerHTML = '<div class="anv-muted">Buscando...</div>';
+                        fetch(anvisaUrl('buscar', 'q=' + encodeURIComponent(termo)))
+                            .then(parseJsonFetchResponse)
+                            .then(function (d) {
+                                var list = d.resultados || [];
+                                if (!list.length) {
+                                    results.innerHTML = '<div class="anv-muted">Nenhum medicamento encontrado.</div>';
+                                    return;
+                                }
+                                results.innerHTML = list
+                                    .map(function (r) {
+                                        return (
+                                            '<div class="anv-result-item">' +
+                                            '<strong>' + escapeHtml(r.nome || '—') + '</strong><br>' +
+                                            '<span class="anv-muted">Princípio ativo: ' + escapeHtml(r.principio_ativo || '—') + '</span><br>' +
+                                            '<span class="anv-muted">Laboratório: ' + escapeHtml(r.laboratorio || '—') + ' | Registro: ' + escapeHtml(r.registro || '—') + '</span>' +
+                                            '</div>'
+                                        );
+                                    })
+                                    .join('');
+                            })
+                            .catch(function (err) {
+                                results.innerHTML = '<div class="anv-muted">Erro na busca: ' + escapeHtml(err.message || 'Falha') + '</div>';
+                            });
+                    });
+                }
+            }
+
+            function loadAnvisaStatusOnly() {
+                fetch(anvisaUrl('status'))
+                    .then(parseJsonFetchResponse)
+                    .then(function (status) {
+                        var total = status && status.total_importados ? Number(status.total_importados) : 0;
+                        var totalEl = document.getElementById('anv-total');
+                        var badgeEl = document.getElementById('anv-badge');
+                        if (totalEl) totalEl.textContent = String(total);
+                        if (badgeEl) {
+                            if (total > 0) {
+                                badgeEl.className = 'anv-badge anv-badge--ok';
+                                badgeEl.textContent = 'Base atualizada';
+                            } else {
+                                badgeEl.className = 'anv-badge anv-badge--err';
+                                badgeEl.textContent = 'Base vazia';
+                            }
+                        }
+                    })
+                    .catch(function () {});
             }
         })();
     </script>
