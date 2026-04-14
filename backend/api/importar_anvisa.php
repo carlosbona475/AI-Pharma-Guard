@@ -15,7 +15,6 @@ require_once __DIR__ . '/../config/database.php';
 $conn = getConnection();
 
 $action = $_GET['action'] ?? 'status';
-define('ANVISA_ZIP_URL', 'https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_MEDICAMENTOS.zip');
 define('ANVISA_ZIP_LOCAL', sys_get_temp_dir() . '/DADOS_ABERTOS_MEDICAMENTOS.zip');
 
 function fazerCurl($url) {
@@ -102,6 +101,39 @@ function downloadArquivoAnvisa($url, $destino) {
     return ['ok' => true];
 }
 
+function baixarArquivoAnvisa() {
+    $destino = sys_get_temp_dir() . '/DADOS_ABERTOS_MEDICAMENTOS.zip';
+    
+    // Tentar múltiplas URLs oficiais
+    $urls = [
+        'https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_MEDICAMENTOS.zip',
+        'https://www.gov.br/anvisa/pt-br/acessoainformacao/dadosabertos/dados/DADOS_ABERTOS_MEDICAMENTOS.zip',
+        'https://dados.gov.br/dados/conjuntos-dados/medicamentos-registrados-no-brasil/DADOS_ABERTOS_MEDICAMENTOS.zip',
+    ];
+    
+    foreach ($urls as $url) {
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 120,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => false,
+            CURLOPT_USERAGENT      => 'Mozilla/5.0',
+        ]);
+        $data     = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        
+        if ($httpCode === 200 && $data && strlen($data) > 10000) {
+            file_put_contents($destino, $data);
+            return $destino;
+        }
+    }
+    return false;
+}
+
 function extrairCsvAnvisa($zipPath) {
     if (!class_exists('ZipArchive')) {
         return ['ok' => false, 'erro' => 'Extensão ZipArchive não disponível no servidor.'];
@@ -184,16 +216,16 @@ if ($action === 'criar_tabela') {
 
 // ---- Importar página de medicamentos ----
 if ($action === 'importar') {
-    $dl = downloadArquivoAnvisa(ANVISA_ZIP_URL, ANVISA_ZIP_LOCAL);
-    if (!$dl['ok']) {
+    $zipPath = baixarArquivoAnvisa();
+    if (!$zipPath) {
         echo json_encode([
             'success' => false,
-            'message' => $dl['erro'],
+            'message' => 'Não foi possível baixar o ZIP da ANVISA nas URLs conhecidas.',
         ], JSON_UNESCAPED_UNICODE);
         exit;
     }
 
-    $ext = extrairCsvAnvisa(ANVISA_ZIP_LOCAL);
+    $ext = extrairCsvAnvisa($zipPath);
     if (!$ext['ok']) {
         echo json_encode([
             'success' => false,
@@ -311,6 +343,39 @@ if ($action === 'importar') {
             'message' => $e->getMessage(),
         ], JSON_UNESCAPED_UNICODE);
     }
+    exit;
+}
+
+if ($action === 'testar_urls') {
+    $urls = [
+        'https://dados.anvisa.gov.br/dados/DADOS_ABERTOS_MEDICAMENTOS.zip',
+        'https://www.gov.br/anvisa/pt-br/acessoainformacao/dadosabertos/dados/DADOS_ABERTOS_MEDICAMENTOS.zip',
+        'https://dados.gov.br/dados/conjuntos-dados/medicamentos-registrados-no-brasil/DADOS_ABERTOS_MEDICAMENTOS.zip',
+    ];
+    $resultados = [];
+    foreach ($urls as $url) {
+        $ch = curl_init();
+        curl_setopt_array($ch, [
+            CURLOPT_URL            => $url,
+            CURLOPT_NOBODY         => true,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+        ]);
+        curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $size = curl_getinfo($ch, CURLINFO_CONTENT_LENGTH_DOWNLOAD);
+        curl_close($ch);
+        $resultados[] = [
+            'url'      => $url,
+            'http'     => $code,
+            'tamanho'  => round($size / 1024 / 1024, 2) . ' MB',
+            'acessivel'=> $code === 200
+        ];
+    }
+    echo json_encode(['resultados' => $resultados], 
+                     JSON_UNESCAPED_UNICODE);
     exit;
 }
 
