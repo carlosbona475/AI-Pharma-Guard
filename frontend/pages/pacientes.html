@@ -6,6 +6,32 @@
     <title>Pacientes - AI Pharma Guard</title>
     <link rel="stylesheet" href="../css/app.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        .input-com-icone {
+            position: relative;
+        }
+
+        .input-com-icone svg {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .input-com-icone input {
+            padding-left: 38px !important;
+        }
+
+        .campo-ajuda {
+            margin: 0;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+    </style>
 </head>
 <body>
     <script src="../js/auth-guard.js"></script>
@@ -115,6 +141,18 @@
                     <input type="number" id="idade" name="idade" required min="1" max="120" placeholder="Idade">
                 </div>
                 <div class="form-group">
+                    <label for="peso">Peso (kg)</label>
+                    <div class="input-com-icone">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M6 8h12a2 2 0 0 1 2 2v6a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4v-6a2 2 0 0 1 2-2Z"/>
+                            <path d="M9 8a3 3 0 1 1 6 0"/>
+                            <path d="M12 12v2"/>
+                        </svg>
+                        <input type="number" id="peso" name="peso" step="0.1" min="0.5" max="300" placeholder="Ex: 70.5">
+                    </div>
+                    <p class="campo-ajuda">Opcional — usado na calculadora de dose</p>
+                </div>
+                <div class="form-group">
                     <label for="sexo">Sexo</label>
                     <select id="sexo" name="sexo">
                         <option value="masculino">Masculino</option>
@@ -171,6 +209,7 @@
                             <th>ID</th>
                             <th>Nome</th>
                             <th>Idade</th>
+                            <th>Peso (kg)</th>
                             <th>Sexo</th>
                             <th>Doencas</th>
                             <th>Medicamentos em uso</th>
@@ -178,7 +217,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Carregando...</td></tr>
+                        <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Carregando...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -215,11 +254,11 @@
                     currentData = pacientes;
 
                     if (!Array.isArray(pacientes)) {
-                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--risk-severe);">Resposta inválida da API.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--risk-severe);">Resposta inválida da API.</td></tr>';
                         return;
                     }
                     if (pacientes.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Nenhum paciente cadastrado.</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Nenhum paciente cadastrado.</td></tr>';
                     } else {
                         tbody.innerHTML = pacientes.map(function(p) {
                             return '' +
@@ -227,6 +266,7 @@
                                 '<td>' + p.id + '</td>' +
                                 '<td>' + escapeHtml(p.nome) + '</td>' +
                                 '<td>' + p.idade + '</td>' +
+                                '<td>' + (p.peso != null && p.peso !== '' ? escapeHtml(String(p.peso)) : '-') + '</td>' +
                                 '<td>' + (p.sexo || '-') + '</td>' +
                                 '<td>' + escapeHtml(p.doencas || '-') + '</td>' +
                                 '<td>' + escapeHtml(p.medicamentos_usados || '-') + '</td>' +
@@ -251,7 +291,7 @@
                         }).join('');
                 }).catch(function(err) {
                     console.error('[Pacientes] Erro ao listar:', err);
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o console.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--risk-severe);">Erro ao carregar. Verifique o console.</td></tr>';
                 });
             }
 
@@ -342,6 +382,12 @@
                 api.cadastrarPaciente({
                     nome: document.getElementById('nome').value,
                     idade: parseInt(document.getElementById('idade').value, 10) || 0,
+                    peso: (function() {
+                        var pesoRaw = document.getElementById('peso').value;
+                        if (pesoRaw === '') return null;
+                        var pesoNum = parseFloat(pesoRaw);
+                        return isNaN(pesoNum) ? null : pesoNum;
+                    })(),
                     sexo: document.getElementById('sexo').value,
                     doencas: document.getElementById('doencas').value || '',
                     medicamentos: document.getElementById('medicamentos').value || '',

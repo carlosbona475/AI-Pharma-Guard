@@ -255,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         sendJson(['success' => false, 'message' => 'Faça login para acessar.']);
     }
     try {
-        $stmt = $conn->prepare('SELECT id, nome, idade, cpf, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes, created_at FROM pacientes WHERE id = ? AND farmacia_id = ? LIMIT 1');
+        $stmt = $conn->prepare('SELECT id, nome, idade, peso, cpf, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes, created_at FROM pacientes WHERE id = ? AND farmacia_id = ? LIMIT 1');
         $stmt->execute([$id, $farmacia_id]);
         $paciente = $stmt->fetch(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
@@ -279,7 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) && $_GET['act
         $stmt->execute([$farmacia_id]);
         $total = (int) $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-        $stmt = $conn->prepare('SELECT * FROM pacientes WHERE farmacia_id = ? ORDER BY nome LIMIT ? OFFSET ?');
+        $stmt = $conn->prepare('SELECT id, farmacia_id, nome, idade, peso, cpf, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes, created_at FROM pacientes WHERE farmacia_id = ? ORDER BY nome LIMIT ? OFFSET ?');
         $stmt->bindValue(1, $farmacia_id, PDO::PARAM_INT);
         $stmt->bindValue(2, $limit, PDO::PARAM_INT);
         $stmt->bindValue(3, $offset, PDO::PARAM_INT);
@@ -316,6 +316,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
     }
 
     $idade = isset($data['idade']) ? (int) $data['idade'] : 0;
+    $peso = null;
+    if (isset($data['peso']) && $data['peso'] !== '' && $data['peso'] !== null) {
+        $pesoNum = (float) $data['peso'];
+        if ($pesoNum > 0) {
+            $peso = round($pesoNum, 2);
+        }
+    }
     $cpf = isset($data['cpf']) ? preg_replace('/\D/', '', (string) $data['cpf']) : '';
     $sexo = isset($data['sexo']) ? (string) $data['sexo'] : 'masculino';
     if (!in_array($sexo, ['masculino', 'feminino'], true)) {
@@ -327,12 +334,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_GET['action']) && $_GET['ac
         $alergiasNormalizadas = trim(preg_replace('/\s+/', ' ', mb_strtolower($alergiasBrutas, 'UTF-8')));
 
         $stmt = $conn->prepare(
-            'INSERT INTO pacientes (farmacia_id, nome, idade, cpf, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+            'INSERT INTO pacientes (farmacia_id, nome, idade, peso, cpf, sexo, doencas, medicamentos_usados, alergias, historico_clinico, observacoes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
         );
         $stmt->execute([
             $farmacia_id,
             $nome,
             $idade,
+            $peso,
             $cpf !== '' ? $cpf : null,
             $sexo,
             isset($data['doencas']) ? (string) $data['doencas'] : '',
