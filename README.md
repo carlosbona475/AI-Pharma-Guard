@@ -216,3 +216,5 @@ Resumo objetivo do que foi implementado no sistema em relação ao prontuário d
 ## Objetivo do sistema
 
 Sistema **multi-farmácia** com autenticação: cada farmácia tem login e cadastro e (quando a API estiver protegida por sessão) seus próprios pacientes, medicamentos e interações. O prontuário do paciente inclui doenças, medicamentos em uso, **alergias**, **histórico clínico** e **observações farmacêuticas**, evoluindo o AI Pharma Guard para um registro clínico mais completo.
+#   d e p l o y    
+ 
